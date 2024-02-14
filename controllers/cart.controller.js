@@ -2,7 +2,6 @@ const _ = require("lodash");
 const Cart = require("../modals/cart.models.js");
 const Product = require("../modals/productModal.js");
 
-
 async function getTypeData(productId, typeId) {
   try {
     const product = await Product.findOne({
@@ -12,8 +11,10 @@ async function getTypeData(productId, typeId) {
 
     if (product) {
       // Extract the type data from the product
-      const typeData = product.types.find((type) => type._id.toString() === typeId);
-console.log(typeData,"heyey");
+      const typeData = product.types.find(
+        (type) => type._id.toString() === typeId
+      );
+      console.log(typeData, "heyey");
       return typeData;
     } else {
       console.log("Product not found");
@@ -26,18 +27,17 @@ console.log(typeData,"heyey");
 }
 
 const addtocart = async (req, res) => {
+  console.log(req.body);
   try {
-    let typeRef= {}
-     if (req.body.typeRef) {
-       typeRef = await getTypeData(req.body.productRef,req.body.typeRef) 
-      console.log(typeRef,"i amaamaaasdsdef");
+    let typeRef = {};
+    if (req.body.typeRef) {
+      typeRef = await getTypeData(req.body.productRef, req.body.typeRef);
+      console.log(typeRef, "i amaamaaasdsdef");
     }
-    
-    let formData
+
+    let formData;
     if (typeRef) {
-      
-      
-    formData = {
+      formData = {
         userRef: _.get(req, "body.userDetails._id", ""),
         typeRef,
         productRef: _.get(req, "body.productRef", ""),
@@ -45,7 +45,7 @@ const addtocart = async (req, res) => {
         bookingRef: _.get(req, "body.bookingRef", ""),
       };
     } else {
- formData = {
+      formData = {
         userRef: _.get(req, "body.userDetails._id", ""),
         productRef: _.get(req, "body.productRef", ""),
         orderRef: _.get(req, "body.orderRef", ""),
@@ -53,7 +53,7 @@ const addtocart = async (req, res) => {
       };
     }
 
-console.log(formData,"i am formdata");
+    console.log(formData, "i am formdata");
 
     const data = await Cart.create(formData);
 
@@ -62,8 +62,6 @@ console.log(formData,"i am formdata");
     return res
       .status(200)
       .send({ message: " Food successfully added to the cart" });
-
-
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: "Something went wrong" });
@@ -97,90 +95,79 @@ const getCurrentUserCartProducts = async (req, res) => {
       where.bookingRef = bookingref;
     }
 
-
     let collect_current_user_carts = await Cart.find(where, {
       userRef: 0,
       orderRef: 0,
-    }).populate("productRef")
-   
-  
+    }).populate("productRef");
 
     // let foundType
-  //   const processUserCarts = async () => {
-  //     // Assuming collect_current_user_carts is an array of items
-  //     for (const data of collect_current_user_carts) {
-  //       try {
-  //         let product = await Product.findById(data.productRef._id);
-    
-    
-  //         if (!product) {
-  //           return;
-  //         }
-    
-  //         if (product.types && Array.isArray(product.types)) {
-  //            foundType = product.types.find(type => type._id.toString() === data.typeRef);
-    
-  //           if (foundType) {
-  //             console.log(`foundType`, foundType);
-  //             data.typeRef = foundType
-  //             // data.typeRef = JSON.parse(data.typeRef);
-              
-  //             console.log(typeof foundType);
-             
-  //           } else {
-  //             console.log('Type not found');
-  //           }
-  //         } else {
-  //           console.log('Product does not have a valid types array');
-  //         }
-  //       } catch (error) {
-  //         console.error('Error processing user cart:', error);
-  //       }
-  //     }
-      
+    //   const processUserCarts = async () => {
+    //     // Assuming collect_current_user_carts is an array of items
+    //     for (const data of collect_current_user_carts) {
+    //       try {
+    //         let product = await Product.findById(data.productRef._id);
 
-  //   };
-    
-  //   // Call the asynchronous function
-  //  await processUserCarts();
-   
-    
+    //         if (!product) {
+    //           return;
+    //         }
+
+    //         if (product.types && Array.isArray(product.types)) {
+    //            foundType = product.types.find(type => type._id.toString() === data.typeRef);
+
+    //           if (foundType) {
+    //             console.log(`foundType`, foundType);
+    //             data.typeRef = foundType
+    //             // data.typeRef = JSON.parse(data.typeRef);
+
+    //             console.log(typeof foundType);
+
+    //           } else {
+    //             console.log('Type not found');
+    //           }
+    //         } else {
+    //           console.log('Product does not have a valid types array');
+    //         }
+    //       } catch (error) {
+    //         console.error('Error processing user cart:', error);
+    //       }
+    //     }
+
+    //   };
+
+    //   // Call the asynchronous function
+    //  await processUserCarts();
+
     console.log(collect_current_user_carts);
 
-//     collect_current_user_carts.map((data) => {
+    //     collect_current_user_carts.map((data) => {
 
+    //       const product = await Product.findById(data.productRef._id)
+    //       console.log(product);
+    //       if (!product) {
 
-//       const product = await Product.findById(data.productRef._id)
-//       console.log(product);
-//       if (!product) {
-     
-//         return;
-//       }
+    //         return;
+    //       }
 
-//       if (product.types && Array.isArray(product.types)) {
-//         // Find the type within the types array by _id
-//         const foundType = product.types.find(type => type._id.toString() === collect_current_user_carts.typeRef);
-  
-//         if (foundType) {
-//           // You have found the type, and it's stored in the 'foundType' variable
-//           console.log(foundType);
-//         } else {
-//           console.log('Type not found');
-//         }
-//       } else {
-//         console.log('Product does not have a valid types array');
-//       }
+    //       if (product.types && Array.isArray(product.types)) {
+    //         // Find the type within the types array by _id
+    //         const foundType = product.types.find(type => type._id.toString() === collect_current_user_carts.typeRef);
 
-// })
-    
+    //         if (foundType) {
+    //           // You have found the type, and it's stored in the 'foundType' variable
+    //           console.log(foundType);
+    //         } else {
+    //           console.log('Type not found');
+    //         }
+    //       } else {
+    //         console.log('Product does not have a valid types array');
+    //       }
 
+    // })
 
     // console.log(collect_current_user_carts,"collectss");
 
     return res.status(200).send({ data: collect_current_user_carts });
-
   } catch (err) {
-
     console.log(err);
 
     return res.status(500).send({ message: "Something went wrong" });
