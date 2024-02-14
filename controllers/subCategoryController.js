@@ -4,12 +4,12 @@ const helpers = require("../utils/helpers");
 
 const createSubCategory = async (req, res) => {
   try {
-    const maximumCount=10
-    const {categoryName,categoryId}=req.body;
-    const subCategoryCount=await subCategory.find({categoryId})
-    if (subCategoryCount.length >= maximumCount) {
-      return res.status(400).send(`Your ${categoryName} limit reached. Cannot create more ${categoryName}.`);
-    }
+    const maximumCount = 10;
+    const { categoryName, categoryId } = req.body;
+    const subCategoryCount = await subCategory.find({ categoryId });
+    // if (subCategoryCount.length >= maximumCount) {
+    //   return res.status(400).send(`Your ${categoryName} limit reached. Cannot create more ${categoryName}.`);
+    // }
 
     const subCuisinePhto = req.file;
     if (subCuisinePhto) {
@@ -20,21 +20,21 @@ const createSubCategory = async (req, res) => {
       if (path) {
         await helpers.deleteS3File(path);
       }
-      const image=helpers.getS3FileUrl(path)
+      const image = helpers.getS3FileUrl(path);
       helpers.deleteFile(subCuisinePhto);
       await subCategory.create({
-        name:get(req.body, 'name', ''),
-        status:get(req.body, 'status', ''),
-        categoryId:get(req.body, 'categoryId', ''),
-        categoryName:get(req.body, 'categoryName', ''),
-        image:image,
-       
+        name: get(req.body, "name", ""),
+        status: get(req.body, "status", ""),
+        categoryId: get(req.body, "categoryId", ""),
+        categoryName: get(req.body, "categoryName", ""),
+        image: image,
       });
-      return res.status(200).send({message:"Subcuisine created successfully"});
-     
+      return res
+        .status(200)
+        .send({ message: "Subcuisine created successfully" });
     }
   } catch (err) {
-    console.log(err,"err")
+    console.log(err, "err");
     return res
       .status(500)
       .send("Something went wrong while creating subcategory");
@@ -52,12 +52,10 @@ const getSubCategory = async (req, res) => {
   }
 };
 
-
-
 const updateSubCategory = async (req, res) => {
   const { id } = req.params;
   try {
-    const imageUrl=req.body.image
+    const imageUrl = req.body.image;
     if (get(req, "file", false)) {
       const subCuisinePhto = req.file;
       if (subCuisinePhto) {
@@ -70,13 +68,13 @@ const updateSubCategory = async (req, res) => {
         }
         const image = helpers.getS3FileUrl(path);
         helpers.deleteFile(subCuisinePhto);
-        await subCategory.findByIdAndUpdate(id,{
-          name:get(req.body, 'name', ''),
-          status:get(req.body, 'status', ''),
-          categoryId:get(req.body, 'categoryId', ''),
-          categoryName:get(req.body, 'categoryName', ''),
-          image:image,
-        })  
+        await subCategory.findByIdAndUpdate(id, {
+          name: get(req.body, "name", ""),
+          status: get(req.body, "status", ""),
+          categoryId: get(req.body, "categoryId", ""),
+          categoryName: get(req.body, "categoryName", ""),
+          image: image,
+        });
 
         return res
           .status(200)
@@ -87,13 +85,15 @@ const updateSubCategory = async (req, res) => {
         name: get(req, "body.name", ""),
         status: get(req, "body.status", ""),
         categoryId: get(req.body, "categoryId", ""),
-        categoryName:get(req.body, 'categoryName', ''),
+        categoryName: get(req.body, "categoryName", ""),
         image: get(req, "body.image", ""),
       });
-      return res.status(200).send({ Message: "subcuisine updated successfully" });
+      return res
+        .status(200)
+        .send({ Message: "subcuisine updated successfully" });
     }
   } catch (e) {
-    console.log(e)
+    console.log(e);
     return res.status(500).send("Something went wrong while updating category");
   }
 };
@@ -101,7 +101,7 @@ const updateSubCategory = async (req, res) => {
 const deleteSubCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const {image}=req.body
+    const { image } = req.body;
     await subCategory.findByIdAndDelete(id);
     await helpers.deleteS3File(image);
     return res.status(200).send("SubCategory deleted");
