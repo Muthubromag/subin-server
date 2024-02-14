@@ -30,7 +30,6 @@ const getOnlineOrder = async (req, res) => {
   try {
     const result = await Order.find({
       orderType: "online",
-      
     }).sort({
       createdAt: -1,
     });
@@ -62,9 +61,10 @@ const deleteOnlineOrder = async (req, res) => {};
 // Web
 const addOnlineOrder = async (req, res) => {
   try {
-    const phoneNumber = req.body.userDetails.phoneNumber
-    const user = await User.findOne({ phoneNumber }).select('userID');
+    const phoneNumber = req.body.userDetails.phoneNumber;
+    const user = await User.findOne({ phoneNumber }).select("userID");
     let formData = {
+      payment_mode: _.get(req, "body.payment_mode", ""),
       customerName: _.get(req, "body.customerName", ""),
       mobileNumber: _.get(req, "body.mobileNumber", ""),
       billAmount: _.get(req, "body.billAmount", ""),
@@ -79,7 +79,7 @@ const addOnlineOrder = async (req, res) => {
       location: _.get(req, "body.location", ""),
       instructions: req.body.instructions,
       types: req.body.types,
-      BromagUserID:user.userID?user.userID:null,
+      BromagUserID: user.userID ? user.userID : null,
       status: "placed",
       orderId: _.get(req, "body.orderId", ""),
       orderType: "online",

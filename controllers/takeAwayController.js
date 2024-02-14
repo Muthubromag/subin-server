@@ -3,6 +3,7 @@ const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const User = require("../modals/userModal");
 const createTakeAwayOrder = async (req, res) => {
+  console.log("createtake away", req.body);
   try {
     const result = await takeAway.create({ ...req.body });
     return res.status(200).send({ data: result });
@@ -38,10 +39,11 @@ const updateTakeAwayOrder = async (req, res) => {
 
 const addTakeAwayOrder = async (req, res) => {
   try {
-    console.log(req.body);
-    const phoneNumber = req.body.userDetails.phoneNumber
-    const user = await User.findOne({ phoneNumber }).select('userID');
+    console.log("addTakeAwayOrder", req.body);
+    const phoneNumber = req.body.userDetails.phoneNumber;
+    const user = await User.findOne({ phoneNumber }).select("userID");
     let formData = {
+      payment_mode: _.get(req, "body.payment_mode", ""),
       customerName: _.get(req, "body.userDetails.user", ""),
       mobileNumber: _.get(req, "body.userDetails.phoneNumber", ""),
       billAmount: _.get(req, "body.billAmount", ""),
@@ -52,7 +54,7 @@ const addTakeAwayOrder = async (req, res) => {
       coupon_amount: _.get(req, "body.coupon_amount", ""),
       item_price: _.get(req, "body.item_price", ""),
       userId: _.get(req, "body.userDetails._id", ""),
-      BromagUserID:user.userID?user.userID:null,
+      BromagUserID: user.userID ? user.userID : null,
       orderedFood: _.get(req, "body.orderedFood", ""),
       orderId: _.get(req, "body.orderId", ""),
       instructionsTakeaway: _.get(req, "body.instructionsTakeaway", ""),

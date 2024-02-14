@@ -37,6 +37,10 @@ const onlineOrderSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    payment_mode: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
       default: "Order placed",

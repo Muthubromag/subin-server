@@ -60,7 +60,8 @@ const io = require("socket.io")(http, {
 });
 
 app.use(cookieParser());
-app.use(morgan("dev"));
+// app.use(morgan("dev"));
+app.use(morgan("tiny"));
 
 app.use("/", adminrouter);
 app.use("/", profileRoutes);
