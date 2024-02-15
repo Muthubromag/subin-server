@@ -9,18 +9,18 @@ const createProduct = async (req, res) => {
     price,
     categoryId,
     subCategoryId,
-    Types,
+    types,
     isVeg,
     subCategoryName,
     categoryName,
     status,
     offer,
   } = req.body;
-  const  isMultiTyped = req.body.isMultiTyped === 'true'
-  console.log(req.body,isMultiTyped);
+  const isMultiTyped = req.body.isMultiTyped === "true";
+  console.log(req.body, isMultiTyped);
   let maximumCuisines = 500;
   let totalMenu = 50;
-  
+
   const isCount = await product.find({ categoryId });
   const totalMenuCount = await product.countDocuments({});
   const existingMenu = await product.aggregate([
@@ -37,22 +37,21 @@ const createProduct = async (req, res) => {
   }
   if (isCount.length >= totalMenu) {
     return res
-    .status(400)
-    .send(
-      `Your ${categoryName} Menu limit reached. Cannot create more ${categoryName}.`
+      .status(400)
+      .send(
+        `Your ${categoryName} Menu limit reached. Cannot create more ${categoryName}.`
       );
-    }
-    if (totalMenuCount >= maximumCuisines) {
-      return res.status(400).send(`Your can't add more than 500 Menu.`);
-    }
-    
+  }
+  if (totalMenuCount >= maximumCuisines) {
+    return res.status(400).send(`Your can't add more than 500 Menu.`);
+  }
+
   const menu = req.file;
-  
-  let image
+
+  let image;
 
   if (menu) {
     try {
-      
       console.log(menu);
       const path = `Menu/${menu.originalname}${Date.now()}/${menu.filename}`;
       await helpers.uploadFile(menu, path);
@@ -60,39 +59,37 @@ const createProduct = async (req, res) => {
         await helpers.deleteS3File(path);
       }
       image = helpers.getS3FileUrl(path);
-      helpers.deleteFile(menu); 
+      helpers.deleteFile(menu);
     } catch (err) {
       console.log(err);
     }
   }
   if (isMultiTyped) {
-   
-    const parsedTypes = JSON.parse(Types);
+    const parsedTypes = JSON.parse(types);
 
-    parsedTypes.forEach(typeObj => {
+    parsedTypes.forEach((typeObj) => {
       const typePrice = typeObj.TypePrice;
       let typeOfferPercentage = typeObj.TypeOfferPercentage;
-    
+
       // Handle cases where TypeOfferPercentage is 0, null, or undefined
       if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
         typeOfferPercentage = 0;
       }
       // Calculate TypeOfferPrice
       const calculatedTypeOfferPrice = (typePrice * typeOfferPercentage) / 100;
-    
+
       // Calculate the reduced TypePrice by subtracting TypeOfferPrice
       const reducedTypePrice = typePrice - calculatedTypeOfferPrice;
-    
+
       // Assign the calculated values back to the array
       let flooredReducedPrice = Math.floor(reducedTypePrice);
       typeObj.TypeOfferPercentage = typeOfferPercentage;
       typeObj.TypeOfferPrice = flooredReducedPrice;
     });
-    
 
     const result = await product.create({
       name: req.body.name,
-      status: req.body.status?req.body.status:false,
+      status: req.body.status ? req.body.status : false,
       categoryId: req.body.categoryId,
       subCategoryId: req.body.subCategoryId,
       categoryName: req.body.categoryName,
@@ -101,56 +98,52 @@ const createProduct = async (req, res) => {
       image: image,
       isVeg: isVeg,
     });
-   
+
     return res.status(200).send({ message: "Menu created successfully" });
   } else if (!isMultiTyped) {
-  
     const menu = req.file;
 
     try {
       if (menu) {
         const path = `Menu/${menu.originalname}${Date.now()}/${menu.filename}`;
-    
+
         // Upload the file
         await helpers.uploadFile(menu, path);
-    
+
         // Delete the file from S3
         await helpers.deleteS3File(path);
-        
+
         // Get the S3 URL
         const image = helpers.getS3FileUrl(path);
-        
+
         // Delete the local file
         helpers.deleteFile(menu);
-    
+
         console.log("File deleted successfully.");
       }
     } catch (error) {
       console.error(`Error: ${error.message}`);
     }
-    
 
     function calculateOfferPrice(basePrice, offerPercentage) {
       // Ensure basePrice is a number
       basePrice = parseFloat(basePrice);
-    
+
       // Ensure offerPercentage is a number, default to 0 if null or undefined
       offerPercentage = parseFloat(offerPercentage) || 0;
-    
-      // Calculate offerPrice
-      const offerPrice = basePrice - (basePrice * offerPercentage / 100);
-      let flooredOfferPrice = Math.floor(offerPrice);
 
+      // Calculate offerPrice
+      const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
+      let flooredOfferPrice = Math.floor(offerPrice);
 
       return flooredOfferPrice;
     }
 
     const offerPrice = calculateOfferPrice(price, offer);
 
-
     const result = await product.create({
       name: req.body.name,
-      status: req.body.status?req.body.status:false,
+      status: req.body.status ? req.body.status : false,
       categoryId: req.body.categoryId,
       subCategoryId: req.body.subCategoryId,
       categoryName: req.body.categoryName,
@@ -163,7 +156,7 @@ const createProduct = async (req, res) => {
     });
 
     console.log("Created Single typed");
-      
+
     return res.status(200).send({ message: "Menu created successfully" });
   }
 
@@ -267,6 +260,9 @@ const updateProduct = async (req, res) => {
           .send({ message: "Cusines updated successfully" });
       }
     } else {
+      const parsedTypes = req.body?.types ? JSON.parse(req.body?.types) : [];
+
+      console.log({ parsedTypes });
       await product.findByIdAndUpdate(id, {
         name: req.body.name,
         status: req.body.status,
@@ -276,7 +272,7 @@ const updateProduct = async (req, res) => {
         categoryId: req.body.categoryId,
         subCategoryId: req.body.subCategoryId,
         categoryName: req.body.categoryName,
-        types: req.body.types,
+        types: parsedTypes,
         subCategoryName: req.body.subCategoryName,
         image: get(req, "body.image", ""),
       });
