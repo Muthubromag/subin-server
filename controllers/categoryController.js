@@ -24,13 +24,13 @@ const createCategory = async (req, res) => {
         .send(`Cuisine with the name '${name}' already exists .`);
     }
 
-    if (categoryCount >= maximumCategory) {
-      return res
-        .status(400)
-        .send(`Your Cuisines limit reached. Cannot create more Cusines.`);
-    }
+    // if (categoryCount >= maximumCategory) {
+    //   return res
+    //     .status(400)
+    //     .send(`Your Cuisines limit reached. Cannot create more Cusines.`);
+    // }
 
-    const cuisinePhto = req.file;
+    const cuisinePhto = req?.file;
 
     if (cuisinePhto) {
       const path = `Cuisines/${cuisinePhto.originalname}${Date.now()}/${
@@ -178,37 +178,36 @@ const getAllCusinessFilter = async (req, res) => {
 const getFilteredProducts = async (req, res) => {
   try {
     const { cat, subCat, isNonVegOnly, isVegOnly } = JSON.parse(req.params.id);
-console.log("isNonVegOnly", isNonVegOnly, "isVegOnly", isVegOnly);
-let where = {};
+    console.log("isNonVegOnly", isNonVegOnly, "isVegOnly", isVegOnly);
+    let where = {};
 
-if (cat && subCat) {
-  where.categoryId = cat;
-  where.subCategoryId = subCat;
-} else if (cat) {
-  where.categoryId = cat;
-} else {
-  return res.status(400).send("Both cat and subCat are required.");
-}
+    if (cat && subCat) {
+      where.categoryId = cat;
+      where.subCategoryId = subCat;
+    } else if (cat) {
+      where.categoryId = cat;
+    } else {
+      return res.status(400).send("Both cat and subCat are required.");
+    }
 
-// Apply filters based on isNonVegOnly and isVegOnly
-if (isNonVegOnly && !isVegOnly) {
-  where.isVeg = false;
-} else if (isVegOnly && !isNonVegOnly) {
-  where.isVeg = true;
-}
+    // Apply filters based on isNonVegOnly and isVegOnly
+    if (isNonVegOnly && !isVegOnly) {
+      where.isVeg = false;
+    } else if (isVegOnly && !isNonVegOnly) {
+      where.isVeg = true;
+    }
 
-where.status = { $in: [true, false] };
+    where.status = { $in: [true, false] };
 
-console.log(where);
+    console.log(where);
 
-try {
-  const productData = await Product.find(where);
-  console.log(productData);
-  return res.status(200).send({ data: productData });
-} catch (error) {
-  return res.status(500).send({ error: "Internal Server Error" });
-}
-
+    try {
+      const productData = await Product.find(where);
+      console.log(productData);
+      return res.status(200).send({ data: productData });
+    } catch (error) {
+      return res.status(500).send({ error: "Internal Server Error" });
+    }
   } catch (e) {
     return res.status(500).send("Something went wrong while fetching products");
   }

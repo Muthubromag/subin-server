@@ -30,7 +30,7 @@ const OrderSchema = mongoose.Schema(
     orderedFood: {
       type: Array,
       required: true,
-    },  
+    },
     types: [typeSchema],
     customerName: {
       type: String,
@@ -71,6 +71,10 @@ const OrderSchema = mongoose.Schema(
       type: String,
     },
     billAmount: {
+      type: String,
+      required: true,
+    },
+    payment_mode: {
       type: String,
       required: true,
     },
