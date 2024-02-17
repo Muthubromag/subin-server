@@ -76,13 +76,11 @@ const createProduct = async (req, res) => {
         typeOfferPercentage = 0;
       }
       // Calculate TypeOfferPrice
-      const calculatedTypeOfferPrice = (typePrice * typeOfferPercentage) / 100;
-
-      // Calculate the reduced TypePrice by subtracting TypeOfferPrice
-      const reducedTypePrice = typePrice - calculatedTypeOfferPrice;
+      const calculatedTypeOfferPrice =
+        typePrice - (typePrice * typeOfferPercentage) / 100;
 
       // Assign the calculated values back to the array
-      let flooredReducedPrice = Math.floor(reducedTypePrice);
+      let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
       typeObj.TypeOfferPercentage = typeOfferPercentage;
       typeObj.TypeOfferPrice = flooredReducedPrice;
     });
@@ -231,8 +229,16 @@ const getProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
+  const { active = false } = req.body;
   try {
     const imageUrl = req.body.image;
+    if (active) {
+      await product.findByIdAndUpdate(id, {
+        status: req.body.status,
+      });
+      return res.status(200).send({ Message: "Status updated successfully" });
+    }
+
     if (get(req, "file", false)) {
       const menu = req.file;
       if (menu) {
