@@ -80,7 +80,7 @@ const addOnlineOrder = async (req, res) => {
       instructions: req.body.instructions,
       types: req.body.types,
       BromagUserID: user.userID ? user.userID : null,
-      status: "placed",
+      status: "Order placed",
       orderId: _.get(req, "body.orderId", ""),
       orderType: "online",
     };
