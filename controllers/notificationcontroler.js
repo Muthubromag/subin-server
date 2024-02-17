@@ -5,13 +5,21 @@ const createNotifications = async (req, res) => {
     const result = await notification.create({ ...req.body });
     return res.status(200).send({ data: result });
   } catch (err) {
-    return res.status(500).send("Something went wrong while creating notificatio");
+    return res
+      .status(500)
+      .send("Something went wrong while creating notificatio");
   }
 };
 
 const getNotifications = async (req, res) => {
+  const { filter } = req.query;
+  console.log(filter);
   try {
-    const result = await notification.find({}).sort({ createdAt: -1 });
+    const result = await notification
+      .find({
+        field: filter,
+      })
+      .sort({ createdAt: -1 });
     return res.status(200).send({ data: result });
   } catch (e) {
     return res
