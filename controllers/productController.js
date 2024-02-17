@@ -229,7 +229,9 @@ const getProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { active = false } = req.body;
+  const { active = false, types } = req.body;
+  console.log(req?.body?.types !== "undefined");
+
   try {
     const imageUrl = req.body.image;
     if (active) {
@@ -266,7 +268,10 @@ const updateProduct = async (req, res) => {
           .send({ message: "Cusines updated successfully" });
       }
     } else {
-      const parsedTypes = req.body?.types ? JSON.parse(req.body?.types) : [];
+      const parsedTypes =
+        req?.body?.types && req?.body?.types !== "undefined"
+          ? JSON.parse(req.body?.types)
+          : [];
 
       console.log({ parsedTypes });
       await product.findByIdAndUpdate(id, {
