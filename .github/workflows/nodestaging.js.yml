@@ -29,9 +29,9 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: pwd
-    - run: cp /home/ubuntu/serverenv/.env /home/ubuntu/serverstaging/_work/BROMAG-IN-SERVER/BROMAG-IN-SERVER
+    - run: cp /home/ubuntu/devserverenv/.env /home/ubuntu/devserver/_work/BROMAG-IN-SERVER/BROMAG-IN-SERVER
 
-    - run: pm2 restart staging
+    - run: pm2 start index.js --name staging
     
     
   
