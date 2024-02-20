@@ -12,7 +12,6 @@ jobs:
   build:
 
     runs-on: stag
-IFTAR-BROMAG
     strategy:
       matrix:
         node-version: [18.x]
