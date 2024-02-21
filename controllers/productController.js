@@ -137,7 +137,7 @@ const createProduct = async (req, res) => {
       return flooredOfferPrice;
     }
 
-    const offerPrice = calculateOfferPrice(price, offer);
+    const offerPrice = calculateOfferPrice(price, offer) ||0;
 
     const result = await product.create({
       name: req.body.name,
@@ -146,8 +146,8 @@ const createProduct = async (req, res) => {
       subCategoryId: req.body.subCategoryId,
       categoryName: req.body.categoryName,
       discountPrice: offerPrice,
-      offer: req.body.offer,
-      price: req.body.price,
+      offer: req.body.offer ||0,
+      price: req.body.price || 0,
       subCategoryName: req.body.subCategoryName,
       image: image,
       isVeg: isVeg,
@@ -304,13 +304,13 @@ const updateProduct = async (req, res) => {
       return flooredOfferPrice;
     }
 
-    const offerPrice = calculateOfferPrice(req.body.price, req.body.offer);
+    const offerPrice = calculateOfferPrice(req.body.price, req.body.offer)||0;
       
       await product.findByIdAndUpdate(id, {
         name: req.body.name,
         status: req.body.status,
-        offer: req.body.offer,
-        price: req.body.price,
+        offer: req.body.offer ||0,
+        price: req.body.price||0,
         discountPrice:isNaN(offerPrice) ? 0 : offerPrice,
         categoryId: req.body.categoryId,
         subCategoryId: req.body.subCategoryId,
