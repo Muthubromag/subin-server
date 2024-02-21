@@ -311,7 +311,7 @@ const updateProduct = async (req, res) => {
         status: req.body.status,
         offer: req.body.offer,
         price: req.body.price,
-        discountPrice: offerPrice,
+        discountPrice:isNaN(offerPrice) ? 0 : offerPrice,
         categoryId: req.body.categoryId,
         subCategoryId: req.body.subCategoryId,
         categoryName: req.body.categoryName,
