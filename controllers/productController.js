@@ -289,13 +289,29 @@ const updateProduct = async (req, res) => {
             typeObj.TypeOfferPercentage = typeOfferPercentage;
             typeObj.TypeOfferPrice = flooredReducedPrice;
           });
+          
+    function calculateOfferPrice(basePrice, offerPercentage) {
+      // Ensure basePrice is a number
+      basePrice = parseFloat(basePrice);
+
+      // Ensure offerPercentage is a number, default to 0 if null or undefined
+      offerPercentage = parseFloat(offerPercentage) || 0;
+
+      // Calculate offerPrice
+      const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
+      let flooredOfferPrice = Math.floor(offerPrice);
+
+      return flooredOfferPrice;
+    }
+
+    const offerPrice = calculateOfferPrice(req.body.price, req.body.offer);
       
       await product.findByIdAndUpdate(id, {
         name: req.body.name,
         status: req.body.status,
         offer: req.body.offer,
         price: req.body.price,
-        discountPrice: req.body.discountPrice,
+        discountPrice: offerPrice,
         categoryId: req.body.categoryId,
         subCategoryId: req.body.subCategoryId,
         categoryName: req.body.categoryName,
@@ -303,7 +319,7 @@ const updateProduct = async (req, res) => {
         subCategoryName: req.body.subCategoryName,
         image: get(req, "body.image", ""),
       });
-      return res.status(200).send({ Message: "created successfully" });
+      return res.status(200).send({ Message: "created successfully",test:"calculated" });
     }
   } catch (e) {
     console.log(e);
