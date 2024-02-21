@@ -4,6 +4,8 @@ const takeAwayModal = require("../modals/takeAwayModal");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const { default: axios } = require("axios");
+const { default: mongoose } = require("mongoose");
+const Order = require("../modals/order");
 
 const getUser = async (req, res) => {
   try {
@@ -321,23 +323,27 @@ const cancelMyOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const { order_type } = req.body;
+
+    const orderId =new mongoose.Types.ObjectId(id);
+    console.log({ orderId, id, order_type });
+
+    let OrderModel;
+
     if (order_type === "online") {
-      await onlineOrderModal.findByIdAndUpdate(
-        { _id: id },
-        { status: "Cancelled" }
-      );
+      OrderModel = Order;
     } else {
-      await takeAwayModal.findByIdAndUpdate(
-        { _id: id },
-        { status: "Cancelled" }
-      );
+      OrderModel = takeAwayModal;
     }
 
-    return res.status(200).send({ message: "success" });
+    const result =await OrderModel.findOneAndUpdate({_id: id},{$set:{status:"Cancelled"}},{new:true})
+
+    return res.status(200).send({ message: "success",result });
   } catch (err) {
+    console.error(err);
     return res.status(500).send({ message: "Something went wrong" });
   }
 };
+
 
 
 module.exports = {
