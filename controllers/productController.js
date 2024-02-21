@@ -68,8 +68,8 @@ const createProduct = async (req, res) => {
     const parsedTypes = JSON.parse(types);
 
     parsedTypes.forEach((typeObj) => {
-      const typePrice = typeObj.TypePrice;
-      let typeOfferPercentage = typeObj.TypeOfferPercentage;
+      const typePrice = Number(typeObj?.TypePrice);
+      let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
 
       // Handle cases where TypeOfferPercentage is 0, null, or undefined
       if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
@@ -272,8 +272,24 @@ const updateProduct = async (req, res) => {
         req?.body?.types && req?.body?.types !== "undefined"
           ? JSON.parse(req.body?.types)
           : [];
-
-      console.log({ parsedTypes });
+          parsedTypes?.forEach((typeObj) => {
+            const typePrice = Number(typeObj?.TypePrice);
+            let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
+      
+            // Handle cases where TypeOfferPercentage is 0, null, or undefined
+            if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
+              typeOfferPercentage = 0;
+            }
+            // Calculate TypeOfferPrice
+            const calculatedTypeOfferPrice =
+              typePrice - (typePrice * typeOfferPercentage) / 100;
+      
+            // Assign the calculated values back to the array
+            let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
+            typeObj.TypeOfferPercentage = typeOfferPercentage;
+            typeObj.TypeOfferPrice = flooredReducedPrice;
+          });
+      
       await product.findByIdAndUpdate(id, {
         name: req.body.name,
         status: req.body.status,
