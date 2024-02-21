@@ -115,6 +115,7 @@ app.all("*", (req, res) => {
 mongoose
   .connect(process.env.MONGO_URI, {})
   .then(() => {
+    console.log("Databse connected !!!")
     app.listen(process.env.PORT, () => {
       console.log("listening on port", process.env.PORT);
     });
