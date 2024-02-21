@@ -323,7 +323,7 @@ const updateProduct = async (req, res) => {
     }
   } catch (e) {
     console.log(e);
-    return res.status(500).send("Something went wrong while updating product");
+    return res.status(500).send({msg:"Something went wrong while updating product",e});
   }
 };
 
