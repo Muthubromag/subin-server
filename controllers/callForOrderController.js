@@ -19,7 +19,7 @@ const createCallOrder = async (req, res) => {
     return item;
   }
 });
-    
+   console.log({orderedFoodArray,modifiedOrderedFood,formData:req.body?.formData})
     // Assigning the modified orderedFood array back to formData
     req.body.formData.orderedFood = modifiedOrderedFood;
     
@@ -47,14 +47,16 @@ console.log(foodWithoutType,"foodWithoutType");
       const productMatch = getData.find(
         (product) => product.name === order.food
       );
+      console.log("--------",{productMatch})
 
       return {
         ...order,
-        image: productMatch ? productMatch.image : null,
+        id:productMatch?._id?.toString(),        image: productMatch ? productMatch.image : null,
       };
     });
 
     req.body.formData.orderedFood = updatedOrderedFood;
+    console.log({updatedOrderedFood})
     // ================================================================================================
 
     // find all without type food from db
@@ -82,13 +84,26 @@ console.log(calculatedPrices,"calculatedPrices of all non type");
     );
 
     console.log(totalAmount, "totalAmount of  all non type");
-    
+    let user=null;
     // ================================================================================================
-    const userData = await User.findOne({
+     user = await User.findOne({
       phoneNumber: `+91${req.body.formData.mobileNumber}`,
     });
-
-  const  { _id } = userData 
+    if(!user){
+      const prefix = "BIPL1003";
+      const randomNumber = Math.floor(10000 + Math.random() * 90000); // Generate a random 5-digit number
+      const userID = `${prefix}${randomNumber}`;
+    
+      user = await User.create({
+        phoneNumber: `+91${req.body.formData.mobileNumber}`,
+        user:req.body?.formData?.customerName,
+        email:null,
+        userID
+      });
+      
+    }
+console.log({user})
+  const  { _id } = user 
     
     const typesData = req.body.formData.types?.map((type) => ({
       type: type.type,
@@ -109,34 +124,37 @@ console.log(foodWithType,"foodwithtype");
         ...req.body.formData,
         orderType: "call",
         user: _id,
-        BromagUserID:userData.userID?userData.userID:null,
+        BromagUserID:user.userID?user?.userID:null,
         types: typesData,
         grandTotal: grandTotal,
+        payment_mode:""
       });
-      // return res.status(200).send({ data: result });
+   return res.status(200).send({ data: result });
     } else if (totalAmount) {
       const grandTotal = Math.round(totalAmount);
       const result = await Order.create({
         ...req.body.formData,
         orderType: "call",
         user: _id,
-        BromagUserID:userData.userID?userData.userID:null,
+        BromagUserID:user.userID?user?.userID:null,
         types: typesData,
         grandTotal: grandTotal,
+        payment_mode:""
       });
-      // return res.status(200).send({ data: result });
+       return res.status(200).send({ data: result });
     } else {
       const grandTotal = Math.round(totalFoodCost);
       const result = await Order.create({
         ...req.body.formData,
         orderType: "call",
         user: _id,
-        BromagUserID:userData.userID?userData.userID:null,
+        BromagUserID:user.userID?user?.userID:null,
         types: typesData,
         grandTotal: grandTotal,
+        payment_mode:""
       });
       console.log(result);
-      // return res.status(200).send({ data: result });
+       return res.status(200).send({ data: result });
     }
   } catch (err) {
     console.log(err);
