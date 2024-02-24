@@ -271,6 +271,7 @@ const createCallOrder = async (req, res) => {
           : Number(food?.price),
 
         foodQuantity: Number(element?.foodQuantity),
+        instruction: element?.instruction,
       };
 
       amount = amount + foodObj?.foodPrice * foodObj?.foodQuantity;
@@ -450,6 +451,7 @@ const updateCallOrder = async (req, res) => {
     const formData = req.body;
 
     const orderedFoodArray = formData?.orderedFood;
+    console.log(orderedFoodArray);
 
     const products = await productModal.find({
       name: { $in: orderedFoodArray?.map((item) => item?.foodName) },
@@ -470,11 +472,11 @@ const updateCallOrder = async (req, res) => {
       let typeData = null;
 
       if (element?.type && element?.type !== "Regular") {
-        // const [type, price, typeid] = element?.type?.split(" - ");
-        let typeid = element?.type;
+        const [type, price, typeid] = element?.type?.split(" - ");
+        let typedata = type;
         console.log({ typeid, typeData: food?.types });
         typeData = food?.types?.filter(
-          (pd) => pd?.Type?.toLowerCase() === typeid?.toLowerCase()
+          (pd) => pd?.Type?.toLowerCase() === typedata?.toLowerCase()
         )?.[0];
       }
 
@@ -498,6 +500,7 @@ const updateCallOrder = async (req, res) => {
             : Number(food?.price),
 
         foodQuantity: Number(element?.foodQuantity),
+        instruction: element?.instruction,
       };
 
       console.log({ foodObj });
