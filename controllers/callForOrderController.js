@@ -559,6 +559,28 @@ const updateCallOrder = async (req, res) => {
   }
 };
 
+const updateCallOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const ORDERTYPE = "call";
+
+    const result = await Order.findByIdAndUpdate(
+      { _id: id, orderType: ORDERTYPE },
+      {
+        ...req?.body,
+      },
+      { new: true }
+    );
+    return res.status(200).send({ data: result });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .send("Something went wrong while creating call order");
+  }
+};
+
 const cancelMyCallOrder = async (req, res) => {
   try {
     const { id } = req.params;
@@ -606,4 +628,5 @@ module.exports = {
   updateCallOrder,
   getMyCallForOrder,
   cancelMyCallOrder,
+  updateCallOrderStatus,
 };
