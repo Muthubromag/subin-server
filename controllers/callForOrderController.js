@@ -271,6 +271,7 @@ const createCallOrder = async (req, res) => {
           : Number(food?.price),
 
         foodQuantity: Number(element?.foodQuantity),
+        instruction: element?.instruction,
       };
 
       amount = amount + foodObj?.foodPrice * foodObj?.foodQuantity;
@@ -450,6 +451,7 @@ const updateCallOrder = async (req, res) => {
     const formData = req.body;
 
     const orderedFoodArray = formData?.orderedFood;
+    console.log(orderedFoodArray);
 
     const products = await productModal.find({
       name: { $in: orderedFoodArray?.map((item) => item?.foodName) },
@@ -470,11 +472,11 @@ const updateCallOrder = async (req, res) => {
       let typeData = null;
 
       if (element?.type && element?.type !== "Regular") {
-        // const [type, price, typeid] = element?.type?.split(" - ");
-        let typeid = element?.type;
+        const [type, price, typeid] = element?.type?.split(" - ");
+        let typedata = type;
         console.log({ typeid, typeData: food?.types });
         typeData = food?.types?.filter(
-          (pd) => pd?.Type?.toLowerCase() === typeid?.toLowerCase()
+          (pd) => pd?.Type?.toLowerCase() === typedata?.toLowerCase()
         )?.[0];
       }
 
@@ -498,6 +500,7 @@ const updateCallOrder = async (req, res) => {
             : Number(food?.price),
 
         foodQuantity: Number(element?.foodQuantity),
+        instruction: element?.instruction,
       };
 
       console.log({ foodObj });
@@ -556,6 +559,28 @@ const updateCallOrder = async (req, res) => {
   }
 };
 
+const updateCallOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const ORDERTYPE = "call";
+
+    const result = await Order.findByIdAndUpdate(
+      { _id: id, orderType: ORDERTYPE },
+      {
+        ...req?.body,
+      },
+      { new: true }
+    );
+    return res.status(200).send({ data: result });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .send("Something went wrong while creating call order");
+  }
+};
+
 const cancelMyCallOrder = async (req, res) => {
   try {
     const { id } = req.params;
@@ -603,4 +628,5 @@ module.exports = {
   updateCallOrder,
   getMyCallForOrder,
   cancelMyCallOrder,
+  updateCallOrderStatus,
 };
