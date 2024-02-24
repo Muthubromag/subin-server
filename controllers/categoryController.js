@@ -8,7 +8,7 @@ const productModal = require("../modals/productModal");
 const createCategory = async (req, res) => {
   try {
     let maximumCategory = 10;
-    const { name } = req.body;
+    const { name, status, type = "food" } = req.body;
     const categoryCount = await category.countDocuments({});
     const existingCategory = await category.aggregate([
       {
@@ -43,8 +43,8 @@ const createCategory = async (req, res) => {
       const image = helpers.getS3FileUrl(path);
       helpers.deleteFile(cuisinePhto);
       await category.create({
-        name: req.body.name,
-        status: req.body.status,
+        name: name,
+        status: status,
         image: image,
       });
 
@@ -84,6 +84,7 @@ const updateCategory = async (req, res) => {
         await category.findByIdAndUpdate(id, {
           name: req.body.name,
           status: req.body.status,
+          type: req.body.type,
           image: image,
         });
 
@@ -97,6 +98,7 @@ const updateCategory = async (req, res) => {
         name: get(req, "body.name", ""),
         status: get(req, "body.status", ""),
         image: get(req, "body.image", ""),
+        type: req.body.type,
       });
       return res.status(200).send({ Message: "Cusines updated successfully" });
     }
@@ -202,7 +204,10 @@ const getFilteredProducts = async (req, res) => {
     console.log(where);
 
     try {
-      const productData = await Product.find(where).sort([['updatedAt', 'desc'], ['createdAt', 'desc']]);
+      const productData = await Product.find(where).sort([
+        ["updatedAt", "desc"],
+        ["createdAt", "desc"],
+      ]);
       console.log(productData);
       return res.status(200).send({ data: productData });
     } catch (error) {

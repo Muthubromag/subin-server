@@ -6,6 +6,7 @@ const {
   updateCallOrder,
   getMyCallForOrder,
   cancelMyCallOrder,
+  updateCallOrderStatus,
 } = require("../controllers/callForOrderController");
 const { webTokenMiddleware } = require("../middleWare/webMiddleware");
 
@@ -13,6 +14,7 @@ router
   .post("/createcallorder", createCallOrder)
   .get("/getcallorder", getCallOrder)
   .put("/updatecallorder/:id", updateCallOrder)
+  .put("/updateCallOrderStatus/:id", updateCallOrderStatus)
 
   .put("/cancel_my_call_order/:id", cancelMyCallOrder);
 
