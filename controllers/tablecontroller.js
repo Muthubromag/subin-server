@@ -42,7 +42,7 @@ const getTable = async (req, res) => {
 const updateTable = async (req, res) => {
   try {
     const { id } = req.params;
-  
+    const { status } = req.body;
     const imageUrl = req.body.image;
     if (get(req, "file", false)) {
       const tablePhto = req.file;
@@ -57,7 +57,7 @@ const updateTable = async (req, res) => {
         }
         const image = helpers.getS3FileUrl(path);
         helpers.deleteFile(tablePhto);
-        await Table.findByIdAndUpdate(id,{
+        await Table.findByIdAndUpdate(id, {
           seatsAvailable: req.body.seatsAvailable,
           tableNo: req.body.tableNo,
           image: image,
@@ -65,17 +65,21 @@ const updateTable = async (req, res) => {
 
         return res.status(200).send({ message: "Table updated successfully" });
       }
+    } else if (status === true || status === false) {
+      await Table.findByIdAndUpdate(id, {
+        status,
+      });
+      return res.status(200).send({ Message: "Table updated successfully" });
     } else {
       await Table.findByIdAndUpdate(id, {
         seatsAvailable: req.body.seatsAvailable,
         tableNo: req.body.tableNo,
         image: imageUrl,
-      
       });
       return res.status(200).send({ Message: "Table updated successfully" });
     }
   } catch (err) {
-    console.log(err,"err")
+    console.log(err, "err");
     return res.status(500).send("Something went wrong while updating table");
   }
 };
