@@ -7,6 +7,7 @@ const {
   updateProduct,
   getProductDetails,
   addToCartFromProductDetails,
+  addMultiCartFromProductDetails,
 } = require("../controllers/productController");
 const upload = require("../helper/upload");
 const { webTokenMiddleware } = require("../middleWare/webMiddleware");
@@ -22,5 +23,10 @@ router.post(
   "/addtocart_fromproduct_deatils",
   webTokenMiddleware,
   addToCartFromProductDetails
+);
+router.post(
+  "/addmulticart_fromproduct_deatils",
+  webTokenMiddleware,
+  addMultiCartFromProductDetails
 );
 module.exports = router;
