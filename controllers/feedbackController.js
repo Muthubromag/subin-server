@@ -1,3 +1,4 @@
+const feedbackModal = require("../modals/feedbackModal");
 const feedback = require("../modals/feedbackModal");
 const _ = require("lodash");
 
@@ -53,6 +54,25 @@ const addMyfeedback = async (req, res) => {
   }
 };
 
+const addHomefeedback = async (req, res) => {
+  try {
+    const { name, email, mobile, feedback } = req.body;
+    const formData = {
+      userName: name,
+      mobileNumber: mobile,
+      message: feedback,
+      ratings: 0,
+
+      email: email,
+    };
+    const result = await feedbackModal.create(formData);
+    return res.status(200).send({ data: result });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send("Something went wrong while creating feedback");
+  }
+};
+
 const getMyfeedback = async (req, res) => {
   try {
     const result = await feedback
@@ -85,6 +105,7 @@ module.exports = {
   getFeedback,
   addMyfeedback,
   getMyfeedback,
-  
+  addHomefeedback,
+
   getAllfeedback,
 };

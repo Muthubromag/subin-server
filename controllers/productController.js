@@ -137,7 +137,7 @@ const createProduct = async (req, res) => {
       return flooredOfferPrice;
     }
 
-    const offerPrice = calculateOfferPrice(price, offer) ||0;
+    const offerPrice = calculateOfferPrice(price, offer) || 0;
 
     const result = await product.create({
       name: req.body.name,
@@ -146,7 +146,7 @@ const createProduct = async (req, res) => {
       subCategoryId: req.body.subCategoryId,
       categoryName: req.body.categoryName,
       discountPrice: offerPrice,
-      offer: req.body.offer ||0,
+      offer: req.body.offer || 0,
       price: req.body.price || 0,
       subCategoryName: req.body.subCategoryName,
       image: image,
@@ -273,47 +273,48 @@ const updateProduct = async (req, res) => {
         req?.body?.types && req?.body?.types !== "undefined"
           ? JSON.parse(req.body?.types)
           : [];
-          parsedTypes?.forEach((typeObj) => {
-            const typePrice = Number(typeObj?.TypePrice);
-            let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
-      
-            // Handle cases where TypeOfferPercentage is 0, null, or undefined
-            if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
-              typeOfferPercentage = 0;
-            }
-            // Calculate TypeOfferPrice
-            const calculatedTypeOfferPrice =
-              typePrice - (typePrice * typeOfferPercentage) / 100;
-      
-            // Assign the calculated values back to the array
-            let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
-            typeObj.TypeOfferPercentage = typeOfferPercentage;
-            typeObj.TypeOfferPrice = flooredReducedPrice;
-          });
-          
-    function calculateOfferPrice(basePrice, offerPercentage) {
-      // Ensure basePrice is a number
-      basePrice = parseFloat(basePrice);
+      parsedTypes?.forEach((typeObj) => {
+        const typePrice = Number(typeObj?.TypePrice);
+        let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
 
-      // Ensure offerPercentage is a number, default to 0 if null or undefined
-      offerPercentage = parseFloat(offerPercentage) || 0;
+        // Handle cases where TypeOfferPercentage is 0, null, or undefined
+        if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
+          typeOfferPercentage = 0;
+        }
+        // Calculate TypeOfferPrice
+        const calculatedTypeOfferPrice =
+          typePrice - (typePrice * typeOfferPercentage) / 100;
 
-      // Calculate offerPrice
-      const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
-      let flooredOfferPrice = Math.floor(offerPrice);
+        // Assign the calculated values back to the array
+        let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
+        typeObj.TypeOfferPercentage = typeOfferPercentage;
+        typeObj.TypeOfferPrice = flooredReducedPrice;
+      });
 
-      return flooredOfferPrice;
-    }
+      function calculateOfferPrice(basePrice, offerPercentage) {
+        // Ensure basePrice is a number
+        basePrice = parseFloat(basePrice);
 
-    const offerPrice = calculateOfferPrice(req.body.price, req.body.offer)||0;
-      
+        // Ensure offerPercentage is a number, default to 0 if null or undefined
+        offerPercentage = parseFloat(offerPercentage) || 0;
+
+        // Calculate offerPrice
+        const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
+        let flooredOfferPrice = Math.floor(offerPrice);
+
+        return flooredOfferPrice;
+      }
+
+      const offerPrice =
+        calculateOfferPrice(req.body.price, req.body.offer) || 0;
+
       await product.findByIdAndUpdate(id, {
         name: req.body.name,
         status: req.body.status,
-        offer: req.body.offer ||0,
-        price: req.body.price||0,
+        offer: req.body.offer || 0,
+        price: req.body.price || 0,
         isVeg: req.body.isVeg,
-        discountPrice:isNaN(offerPrice) ? 0 : offerPrice,
+        discountPrice: isNaN(offerPrice) ? 0 : offerPrice,
         categoryId: req.body.categoryId,
         subCategoryId: req.body.subCategoryId,
         categoryName: req.body.categoryName,
@@ -321,11 +322,15 @@ const updateProduct = async (req, res) => {
         subCategoryName: req.body.subCategoryName,
         image: get(req, "body.image", ""),
       });
-      return res.status(200).send({ Message: "created successfully",test:"calculated" });
+      return res
+        .status(200)
+        .send({ Message: "created successfully", test: "calculated" });
     }
   } catch (e) {
     console.log(e);
-    return res.status(500).send({msg:"Something went wrong while updating product",e});
+    return res
+      .status(500)
+      .send({ msg: "Something went wrong while updating product", e });
   }
 };
 
@@ -376,6 +381,23 @@ const addToCartFromProductDetails = async (req, res) => {
   }
 };
 
+const addMultiCartFromProductDetails = async (req, res) => {
+  try {
+    const { orderedFood, userDetails } = req.body;
+    let data = [];
+
+    for (element of orderedFood) {
+      data.push({ ...element, userRef: userDetails?._id || "" });
+    }
+
+    const resultcart = await Cart.insertMany(data);
+    return res.status(200).send({ data: resultcart });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send({ message: "Something went wrong" });
+  }
+};
+
 module.exports = {
   createProduct,
   getProduct,
@@ -383,4 +405,5 @@ module.exports = {
   updateProduct,
   getProductDetails,
   addToCartFromProductDetails,
+  addMultiCartFromProductDetails,
 };
