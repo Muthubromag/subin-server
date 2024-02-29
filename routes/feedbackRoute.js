@@ -8,6 +8,7 @@ const {
   getMyfeedback,
   getAllfeedback,
   deleteMyFeedBack,
+  addHomefeedback,
 } = require("../controllers/feedbackController");
 const { webTokenMiddleware } = require("../middleWare/webMiddleware");
 
@@ -16,6 +17,7 @@ router
   .get("/getfeedback", getFeedback)
   .put("/updatefeedback/:id", updateFeedback);
 
+router.post("/add_home_feedback", addHomefeedback);
 // Web
 router.post("/add_my_feedback", webTokenMiddleware, addMyfeedback);
 router.post("/get_my_feedback", webTokenMiddleware, getMyfeedback);
