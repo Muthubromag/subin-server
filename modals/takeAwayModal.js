@@ -72,6 +72,14 @@ const takeAwaySchema = mongoose.Schema(
     item_price: {
       type: Number,
     },
+    preparingEnd: {
+      type: String,
+      // required: true,
+    },
+    preparingStart: {
+      type: String,
+      // required: true,
+    },
   },
   { timestamps: true }
 );
