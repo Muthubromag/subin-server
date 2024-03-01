@@ -77,7 +77,7 @@ const OrderSchema = mongoose.Schema(
     payment_mode: {
       type: String,
 
-      default: ''
+      default: "",
     },
     status: {
       type: String,
@@ -110,6 +110,14 @@ const OrderSchema = mongoose.Schema(
       type: Number,
     },
     BromagUserID: {
+      type: String,
+      // required: true,
+    },
+    preparingEnd: {
+      type: String,
+      // required: true,
+    },
+    preparingStart: {
       type: String,
       // required: true,
     },
