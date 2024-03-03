@@ -572,6 +572,14 @@ const updateCallOrderStatus = async (req, res) => {
       },
       { new: true }
     );
+
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "Call Order",
+      status,
+    });
     return res.status(200).send({ data: result });
   } catch (err) {
     console.log(err);
@@ -597,6 +605,14 @@ const cancelMyCallOrder = async (req, res) => {
         { status: "Cancelled" }
       );
     }
+
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: order_type === "callfororder" ? "Call Order" : "Take Away",
+      status: "Cancelled",
+    });
     return res.status(200).send({ message: "success" });
   } catch (err) {
     return res.status(500).send({ message: "Something went wrong" });
