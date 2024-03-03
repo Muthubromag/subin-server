@@ -6,6 +6,13 @@ const createTakeAwayOrder = async (req, res) => {
   console.log("createtake away", req.body);
   try {
     const result = await takeAway.create({ ...req.body });
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "takeaway",
+      status: "Order placed",
+    });
     return res.status(200).send({ data: result });
   } catch (err) {
     return res
@@ -29,6 +36,13 @@ const updateTakeAwayOrder = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await takeAway.findByIdAndUpdate(id, { ...req.body });
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "takeaway",
+      status: req.body.status,
+    });
     return res.status(200).send({ data: result });
   } catch (e) {
     return res
@@ -65,6 +79,13 @@ const addTakeAwayOrder = async (req, res) => {
       orderRef: "takeaway_order",
     };
     await Cart.deleteMany(where);
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "takeaway",
+      status: "Order placed",
+    });
     return res.status(200).send({ message: "success" });
   } catch (err) {
     console.log(err);
