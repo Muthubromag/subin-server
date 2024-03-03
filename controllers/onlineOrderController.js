@@ -48,6 +48,14 @@ const updateOnlineOrder = async (req, res) => {
       { _id: id, orderType: "online" },
       { ...req.body }
     );
+
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "online",
+      status: req.body.status,
+    });
     return res.status(200).send({ data: result });
   } catch (e) {
     return res
@@ -91,6 +99,13 @@ const addOnlineOrder = async (req, res) => {
     };
     await Cart.deleteMany(where);
     console.log(result);
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "online",
+      status: "Order placed",
+    });
     return res.status(200).send({ message: "success" });
   } catch (err) {
     console.log(err);

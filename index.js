@@ -1,5 +1,11 @@
 const express = require("express");
+
+const http = require("http");
+const socketIO = require("socket.io");
+
 const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
 require("dotenv").config();
 const adminrouter = require("./routes/adminUserRoute");
 const categoryRouter = require("./routes/categoryRoute");
@@ -43,7 +49,6 @@ const constants = require("./utils/constants.js");
 const admin = require("firebase-admin");
 const router = express.Router();
 const axios = require("axios");
-const http = require("http").Server(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -51,13 +56,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(cors());
-
-const io = require("socket.io")(http, {
-  cors: {
-    origin: ["*"],
-    methods: ["GET", "POST"],
-  },
-});
+app.set("socketio", io);
 
 app.use(cookieParser());
 // app.use(morgan("dev"));
@@ -98,26 +97,39 @@ app.use("/delivery-boy", require("./routes/delivery-boy.routes.js"));
 
 // Socket.io connection handling
 io.on("connection", (socket) => {
-  socket.on("statusChange", async (data) => {
-    socket.broadcast.emit("statusChanged", data);
+  console.log("A user connected", socket?.id);
+
+  // Handle specific code on connection
+  socket.emit("message", "Hello, you are connected!");
+
+  // Handle custom event from the client
+  socket.on("customEvent", (data) => {
+    console.log("Received custom event:", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected");
+    console.log("User disconnected", socket?.id);
   });
 });
 
+app.get("/demo", (req, res) => {
+  const io = req.app.get("socketio");
+
+  io.emit("demo", { order: "Test Order", status: "Order Received" });
+
+  return res.send("success");
+});
 // Handle undefined routes
 app.all("*", (req, res) => {
   return res.status(405).json({ message: "route not implemented" });
 });
-
+const PORT = process.env.PORT;
 mongoose
   .connect(process.env.MONGO_URI, {})
   .then(() => {
-    console.log("Databse connected !!!")
-    app.listen(process.env.PORT, () => {
-      console.log("listening on port", process.env.PORT);
+    console.log("Database connected !!!");
+    server.listen(PORT, () => {
+      console.log(`App is lisening on ${PORT}`);
     });
   })
   .catch((err) => {
