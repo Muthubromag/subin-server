@@ -44,11 +44,13 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cron = require("./utils/cron.js");
-const firebaseAccount = require("./firebase.json");
+
 const constants = require("./utils/constants.js");
 const admin = require("firebase-admin");
+const { getMessaging } = require("firebase-admin/messaging");
 const router = express.Router();
 const axios = require("axios");
+const FireBaseAdmin = require("./utils/firebase.js");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -116,6 +118,38 @@ app.get("/demo", (req, res) => {
   const io = req.app.get("socketio");
 
   io.emit("demo", { order: "Test Order", status: "Order Received" });
+
+  return res.send("success");
+});
+
+app.get("/fire", (req, res) => {
+  const registrationTokens = [
+    "eRTv_Cs0XpQ3cs9rvVFrw6:APA91bGVJ-E6Wc719C5kA0uAcslSqVClMchCD6-Z-ew98HqLSe1YTIxKo9CCIjgJqUFi8AL3jx71TQMq65jIrnJnIlKFEaE79FVFK5ab7eRfKwUTW8TQ5avwT6HuDGpdpUu7QNW94w-n",
+    "cYlKyTYg36-FLDXgr9fdiZ:APA91bFMcA9BRz-Yy-mdlQp3lHfuXT9OiJZz4z1AoByFKhnba9u53wyFDzWo8x2JznEEkQ97WGFj-P4ZtpE1pGdnDnHq2EivrHgit8G4xJgq45bHebLCouKk-83hTGtgnNN2M4o7DOIg",
+  ];
+
+  const message = {
+    data: { title: "Test data", body: "Order Accespted" },
+    tokens: registrationTokens,
+  };
+
+  getMessaging()
+    .sendEachForMulticast(message)
+    .then((response) => {
+      console.log({ response });
+      if (response.failureCount > 0) {
+        const failedTokens = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(registrationTokens[idx]);
+          }
+        });
+        console.log("List of tokens that caused failures: " + failedTokens);
+      }
+    })
+    .catch((err) => {
+      console.log({ err });
+    });
 
   return res.send("success");
 });

@@ -3,6 +3,7 @@ const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const Order = require("../modals/order");
 const User = require("../modals/userModal");
+const { sendNotifications } = require("../utils/helpers");
 const createOnlineOrder = async (req, res) => {
   try {
     // const result = await Order.create({ ...req.body, orderType: "online" });
@@ -43,11 +44,15 @@ const getOnlineOrder = async (req, res) => {
 
 const updateOnlineOrder = async (req, res) => {
   const { id } = req.params;
+  let user_id = null;
+  let status = req.body.status;
   try {
     const result = await Order.findOneAndUpdate(
       { _id: id, orderType: "online" },
       { ...req.body }
     );
+    console.log(result);
+    user_id = result?.user;
 
     const io = req.app.get("socketio");
 
@@ -56,11 +61,14 @@ const updateOnlineOrder = async (req, res) => {
       order: "online",
       status: req.body.status,
     });
+
     return res.status(200).send({ data: result });
   } catch (e) {
     return res
       .status(500)
       .send("Something went wrong while updating online order");
+  } finally {
+    sendNotifications({ title: "Online order", body: status, user_id });
   }
 };
 

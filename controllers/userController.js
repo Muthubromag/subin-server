@@ -39,7 +39,7 @@ const getUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).sort({ createdAt: 'desc' });
+    const users = await User.find({}).sort({ createdAt: "desc" });
 
     return res.status(200).send({ message: users });
   } catch (err) {
@@ -66,7 +66,6 @@ async function generateRandomUserID() {
 // web
 const careteSignUp = async (req, res) => {
   try {
-    
     console.log(req.body);
     const result = await User.find({ phoneNumber: req.body.phoneNumber });
 
@@ -76,7 +75,7 @@ const careteSignUp = async (req, res) => {
         .send({ message: "This phone number has already been used." });
     }
 
-    req.body.userID = await generateRandomUserID()
+    req.body.userID = await generateRandomUserID();
 
     const result2 = await User.create(req.body);
     return res.status(200).send({ data: result2 });
@@ -102,8 +101,8 @@ const xyxy = async (req, res) => {
           "content-type": "application/json",
         },
       }
-    )
-console.log(response.data.data,"i am otpdata");
+    );
+    console.log(response.data.data, "i am otpdata");
     if (response.data.success) {
       resObj.status = true;
       resObj.message = "user autherized successfully";
@@ -113,24 +112,20 @@ console.log(response.data.data,"i am otpdata");
     }
 
     res.status(200).json(resObj);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-
 const sendOTPViaEdumarc = async (number) => {
-   
-   console.log(number);
-   
-   const url = "https://smsapi.edumarcsms.com/api/v1/sendsms";
-   
+  console.log(number);
+
+  const url = "https://smsapi.edumarcsms.com/api/v1/sendsms";
+
   const headers = {
     apikey: "cleb7v3l30006crtn6x2zbb0l",
     "Content-Type": "application/json",
-   };
-   
+  };
 
   const OTP = `${Math.floor(100000 + Math.random() * 1000000)}`;
 
@@ -142,27 +137,19 @@ const sendOTPViaEdumarc = async (number) => {
   };
 
   try {
-
     const response = await axios.post(url, data, { headers });
     if (response.data.success) {
-      
-      const currentTimestamp = Math.floor(Date.now() / 1000); 
-      const Expiry = new Date((currentTimestamp + 60) * 1000); 
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const Expiry = new Date((currentTimestamp + 60) * 1000);
 
-
-      return {OTP,Expiry}
-
-     
+      return { OTP, Expiry };
     }
-
   } catch (error) {
-
     console.error("Error:", error.message);
-
   }
 };
 
- const isExpired = (expiryTimestamp) => {
+const isExpired = (expiryTimestamp) => {
   // Convert the expiry timestamp to a Date object
   const expiryDate = new Date(expiryTimestamp);
 
@@ -173,78 +160,73 @@ const sendOTPViaEdumarc = async (number) => {
   return currentTimeInSeconds > expiryDate.getTime() / 1000;
 };
 
-
 const verifyOTP = async (req, res) => {
   try {
-    const {number,otp} = req.body
+    const { number, otp } = req.body;
 
     const user = await User.findOne({ phoneNumber: number });
 
     if (user.otp) {
-    
-    
       if (user.otp.code === otp) {
-     
         if (isExpired(user.otp.expiry)) {
-         
-          return res.status(200).send({success:false, message: "Expired OTP. Generate a fresh code" });
-       
+          return res.status(200).send({
+            success: false,
+            message: "Expired OTP. Generate a fresh code",
+          });
         } else {
-          
-        await  User.updateOne(
-            { phoneNumber: number },
-            { $unset: { otp: 1 } })
+          await User.updateOne({ phoneNumber: number }, { $unset: { otp: 1 } });
 
-          return res.status(200).send({success:true, message: "Success! Your identity has been confirmed with the valid OTP. Welcome back!" });
-       
-
+          return res.status(200).send({
+            success: true,
+            message:
+              "Success! Your identity has been confirmed with the valid OTP. Welcome back!",
+          });
         }
       } else {
-
-        return res.status(200).send({ success: false, message: "Please Enter a Valid OTP" });
-        
+        return res
+          .status(200)
+          .send({ success: false, message: "Please Enter a Valid OTP" });
       }
     } else {
-     
-      return res.status(200).send({success:false, message: "To ensure secure login, kindly request and utilize the one-time password (OTP) " });
-    
+      return res.status(200).send({
+        success: false,
+        message:
+          "To ensure secure login, kindly request and utilize the one-time password (OTP) ",
+      });
     }
-
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: "Something went wrong" });
   }
-}
+};
 
 const sendOTP = async (req, res) => {
   try {
-
-    const PhoneNumber = req.params.number
+    const PhoneNumber = req.params.number;
     const user = await User.findOne({ phoneNumber: PhoneNumber });
 
     if (!user) {
       console.log(user);
-      return res.status(200).send({ success: false,message:"User Not Found" });
-    } 
+      return res
+        .status(200)
+        .send({ success: false, message: "User Not Found" });
+    }
 
-   const {OTP,Expiry} = await sendOTPViaEdumarc(PhoneNumber)
+    const { OTP, Expiry } = await sendOTPViaEdumarc(PhoneNumber);
 
+    user.otp.code = OTP;
+    user.otp.expiry = Expiry;
 
-  user.otp.code = OTP;
-  user.otp.expiry = Expiry;
-    
-    
-  await user.save();
-    
-    
-    return res.status(200).send({ success:true ,message :"Check for OTP on your registered number soon" });
+    await user.save();
 
-    
+    return res.status(200).send({
+      success: true,
+      message: "Check for OTP on your registered number soon",
+    });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: "Something went wrong" });
   }
-
 };
 
 const makeUserToken = async (req, res) => {
@@ -301,6 +283,18 @@ const updateMyPic = async (req, res) => {
   }
 };
 
+const updateToken = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(
+      { _id: _.get(req, "body.userDetails._id", "") },
+      { $push: { tokens: req.body.token } }
+    );
+    return res.status(200).send({ message: "success" });
+  } catch (err) {
+    return res.status(500).send({ message: "Something went wrong" });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
     const formData = {
@@ -324,7 +318,7 @@ const cancelMyOrder = async (req, res) => {
     const { id } = req.params;
     const { order_type } = req.body;
 
-    const orderId =new mongoose.Types.ObjectId(id);
+    const orderId = new mongoose.Types.ObjectId(id);
     console.log({ orderId, id, order_type });
 
     let OrderModel;
@@ -335,16 +329,26 @@ const cancelMyOrder = async (req, res) => {
       OrderModel = takeAwayModal;
     }
 
-    const result =await OrderModel.findOneAndUpdate({_id: id},{$set:{status:"Cancelled"}},{new:true})
+    const result = await OrderModel.findOneAndUpdate(
+      { _id: id },
+      { $set: { status: "Cancelled" } },
+      { new: true }
+    );
 
-    return res.status(200).send({ message: "success",result });
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: order_type?.toUpperCase(),
+      status: "Cancelled",
+    });
+
+    return res.status(200).send({ message: "success", result });
   } catch (err) {
     console.error(err);
     return res.status(500).send({ message: "Something went wrong" });
   }
 };
-
-
 
 module.exports = {
   getUser,
@@ -357,6 +361,6 @@ module.exports = {
   updateMyPic,
   updateProfile,
   cancelMyOrder,
-  verifyOTP
-
+  verifyOTP,
+  updateToken,
 };

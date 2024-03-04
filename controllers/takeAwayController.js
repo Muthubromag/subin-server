@@ -2,8 +2,10 @@ const takeAway = require("../modals/takeAwayModal");
 const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const User = require("../modals/userModal");
+const { sendNotifications } = require("../utils/helpers");
 const createTakeAwayOrder = async (req, res) => {
   console.log("createtake away", req.body);
+
   try {
     const result = await takeAway.create({ ...req.body });
     const io = req.app.get("socketio");
@@ -34,10 +36,12 @@ const getTakeAwayOrder = async (req, res) => {
 
 const updateTakeAwayOrder = async (req, res) => {
   const { id } = req.params;
+  const { status } = req.body;
+  let user_id = null;
   try {
     const result = await takeAway.findByIdAndUpdate(id, { ...req.body });
     const io = req.app.get("socketio");
-
+    user_id = result?.userId;
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "takeaway",
@@ -48,6 +52,8 @@ const updateTakeAwayOrder = async (req, res) => {
     return res
       .status(500)
       .send("Something went wrong while updating takeAway order");
+  } finally {
+    sendNotifications({ title: "Take Away order", body: status, user_id });
   }
 };
 
