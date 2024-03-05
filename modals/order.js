@@ -67,6 +67,12 @@ const OrderSchema = mongoose.Schema(
     location: {
       type: Array,
     },
+    coupon: {
+      code: { type: String, default: null },
+      discountPercentage: { type: Number, default: 0 },
+      _id: { type: String, default: null },
+      // Other properties related to the coupon
+    },
     grandTotal: {
       type: String,
     },

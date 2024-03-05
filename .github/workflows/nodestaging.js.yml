@@ -11,10 +11,10 @@ on:
 jobs:
   build:
 
-    runs-on: stag
+    runs-on: ls
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -28,9 +28,9 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: pwd
-    - run: cp /home/ubuntu/devserverenv/.env /home/ubuntu/serverdev/_work/BROMAG-IN-SERVER/BROMAG-IN-SERVER
+    - run: cp /home/ubuntu/devserverenv/.env /home/ubuntu/server/_work/BROMAG-IN-SERVER/BROMAG-IN-SERVER
 
-    - run: pm2 restart staging
+    - run: pm2 start index.js --name staging
     
     
   
