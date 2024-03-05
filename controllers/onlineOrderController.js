@@ -4,6 +4,7 @@ const _ = require("lodash");
 const Order = require("../modals/order");
 const User = require("../modals/userModal");
 const { sendNotifications } = require("../utils/helpers");
+const CouponModal = require("../modals/CouponModal");
 const createOnlineOrder = async (req, res) => {
   try {
     // const result = await Order.create({ ...req.body, orderType: "online" });
@@ -79,11 +80,20 @@ const addOnlineOrder = async (req, res) => {
   try {
     const phoneNumber = req.body.userDetails.phoneNumber;
     const user = await User.findOne({ phoneNumber }).select("userID");
+    const coupon = req.body?.coupon;
+
     let formData = {
       payment_mode: _.get(req, "body.payment_mode", ""),
       customerName: _.get(req, "body.customerName", ""),
       mobileNumber: _.get(req, "body.mobileNumber", ""),
       billAmount: _.get(req, "body.billAmount", ""),
+      coupon: coupon
+        ? {
+            _id: coupon?._id,
+            discountPercentage: Number(coupon?.discountPercentage),
+            code: coupon?.code,
+          }
+        : {},
       gst: _.get(req, "body.gst", ""),
       deliveryCharge: _.get(req, "body.deliveryCharge", ""),
       packingCharge: _.get(req, "body.packingCharge", ""),
@@ -106,6 +116,15 @@ const addOnlineOrder = async (req, res) => {
       orderRef: "online_order",
     };
     await Cart.deleteMany(where);
+    if (coupon?._id) {
+      console.log({ coupon });
+      const updatedCoupon = await CouponModal.findOneAndUpdate(
+        { _id: coupon?._id },
+        { $push: { usedBy: _.get(req, "body.userDetails._id", "") } },
+        { new: true }
+      );
+      console.log({ updatedCoupon });
+    }
     console.log(result);
     const io = req.app.get("socketio");
 
