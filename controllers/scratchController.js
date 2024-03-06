@@ -70,7 +70,7 @@ const checkScrachCardDetails = async (req, res) => {
     const ex_date = getDateAfterDays(30);
     let formdata = {
       order_id: _.get(req, "body.order_id", ""),
-      contact_number: _.get(req, "body.contact_number", ""),
+      contact_number: Number(_.get(req, "body.contact_number", "")),
       userId: _.get(req, "body.userDetails._id", ""),
       expired: true,
       expireDate: ex_date,
