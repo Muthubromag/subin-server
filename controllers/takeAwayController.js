@@ -3,6 +3,7 @@ const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const User = require("../modals/userModal");
 const { sendNotifications } = require("../utils/helpers");
+const CouponModal = require("../modals/CouponModal");
 const createTakeAwayOrder = async (req, res) => {
   console.log("createtake away", req.body);
 
@@ -62,11 +63,19 @@ const addTakeAwayOrder = async (req, res) => {
     console.log("addTakeAwayOrder", req.body);
     const phoneNumber = req.body.userDetails.phoneNumber;
     const user = await User.findOne({ phoneNumber }).select("userID");
+    const coupon = req.body?.coupon;
     let formData = {
       payment_mode: _.get(req, "body.payment_mode", ""),
       customerName: _.get(req, "body.userDetails.user", ""),
       mobileNumber: _.get(req, "body.userDetails.phoneNumber", ""),
       billAmount: _.get(req, "body.billAmount", ""),
+      coupon: coupon
+        ? {
+            _id: coupon?._id,
+            discountPercentage: Number(coupon?.discountPercentage),
+            code: coupon?.code,
+          }
+        : {},
       gst: _.get(req, "body.gst", ""),
       delivery_charge: _.get(req, "body.delivery_charge", ""),
       packing_charge: _.get(req, "body.packing_charge", ""),
@@ -85,6 +94,15 @@ const addTakeAwayOrder = async (req, res) => {
       orderRef: "takeaway_order",
     };
     await Cart.deleteMany(where);
+    if (coupon?._id) {
+      console.log({ coupon });
+      const updatedCoupon = await CouponModal.findOneAndUpdate(
+        { _id: coupon?._id },
+        { $push: { usedBy: _.get(req, "body.userDetails._id", "") } },
+        { new: true }
+      );
+      console.log({ updatedCoupon });
+    }
     const io = req.app.get("socketio");
 
     io.emit("demo", {
