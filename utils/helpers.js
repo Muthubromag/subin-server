@@ -144,7 +144,7 @@ async function sendNotifications({ user_id, title, body }) {
     console.log({ user: result });
     if (result?.tokens?.length) {
       const response = await getMessaging().sendEachForMulticast({
-        data: { title, body },
+        data: { title, body, logo: `${process.env.BACKEND_URL}/logo.png` },
         tokens: result?.tokens,
       });
 
