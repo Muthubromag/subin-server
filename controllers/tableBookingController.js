@@ -1,6 +1,9 @@
 const Table = require("../modals/table");
 const tableBooking = require("../modals/tableBookingModal");
 const _ = require("lodash");
+const {
+  generateAlphanumericFromNamePhoneTimestamp,
+} = require("../utils/helpers");
 
 const createTableBooking = async (req, res) => {
   try {
@@ -39,7 +42,12 @@ const updateTableBooking = async (req, res) => {
 
 const bookMyTable = async (req, res) => {
   try {
+    const code = await generateAlphanumericFromNamePhoneTimestamp(
+      _.get(req, "body.customerName", ""),
+      _.get(req, "body.contactNumber", "")
+    );
     const formDatas = {
+      diningID: `BRODINE${code}`,
       customerName: _.get(req, "body.customerName", ""),
       contactNumber: _.get(req, "body.contactNumber", ""),
       alterateContactNumber: _.get(req, "body.alterateContactNumber", ""),
@@ -53,13 +61,15 @@ const bookMyTable = async (req, res) => {
       tablePic: _.get(req, "body.tablePic", ""),
       tableId: _.get(req, "body.tableId", ""),
       userId: _.get(req, "body.userDetails._id", ""),
+      bookingDate: _.get(req, "body.bookingDate", ""),
+      diningTime: _.get(req, "body.diningTime", ""),
     };
 
     await tableBooking.create(formDatas);
-    const result = await Table.findByIdAndUpdate(
-      { _id: _.get(req, "body.tableId", "") },
-      { status: true }
-    );
+    // const result = await Table.findByIdAndUpdate(
+    //   { _id: _.get(req, "body.tableId", "") },
+    //   { status: true }
+    // );
     return res.status(200).send({
       message: "Your table reservation has been successfully confirmed.",
     });
@@ -73,7 +83,7 @@ const getAllBookedTables = async (req, res) => {
   try {
     const result = await tableBooking.find({
       userId: _.get(req, "body.userDetails._id", ""),
-      booking:{  $ne: "Canceled" },
+      booking: { $ne: "Canceled" },
     });
     return res.status(200).send({ data: result });
   } catch (err) {

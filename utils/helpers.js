@@ -16,6 +16,7 @@ const S3 = new S3Client({
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
   },
 });
+const crypto = require("crypto");
 
 // file can be buffer or path
 function deleteFile(file) {
@@ -166,6 +167,58 @@ async function sendNotifications({ user_id, title, body }) {
   }
 }
 
+function formatTime(date) {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+
+  return `${formattedHours}:${formattedMinutes} ${ampm}`;
+}
+function generateTimeSlots({ interval }) {
+  const startTime = "2024-03-06T10:00:00"; // Replace with your desired start time
+  const endTime = "2024-03-06T23:00:00";
+  const timeSlots = [];
+  let currentStartTime = new Date(startTime);
+  const endDateTime = new Date(endTime);
+
+  while (currentStartTime < endDateTime) {
+    const currentEndTime = new Date(
+      currentStartTime.getTime() + interval * 60 * 60 * 1000
+    );
+
+    const formattedStartTime = formatTime(currentStartTime);
+    const formattedEndTime = formatTime(currentEndTime);
+
+    timeSlots.push({ time: `${formattedStartTime} - ${formattedEndTime}` });
+
+    currentStartTime = currentEndTime;
+  }
+
+  return timeSlots;
+}
+
+function generateAlphanumericFromNamePhoneTimestamp(name, phone) {
+  const timestamp = new Date().getTime().toString();
+  const dataToHash = name + phone + timestamp;
+
+  // Use SHA-256 for hashing, and take the first 12 characters of the hexadecimal representation
+  const hash = crypto
+    .createHash("sha256")
+    .update(dataToHash)
+    .digest("hex")
+    .slice(0, 12);
+
+  // Convert hexadecimal to alphanumeric
+  const alphanumericString = hash
+    .replace(/[^\w]/g, "")
+    .slice(0, 6)
+    .toUpperCase();
+
+  return alphanumericString;
+}
+
 const helpers = {
   deleteFile,
   uploadFile,
@@ -175,6 +228,8 @@ const helpers = {
   saveRiderNotification,
   sendPushNotification,
   sendNotifications,
+  generateTimeSlots,
+  generateAlphanumericFromNamePhoneTimestamp,
 };
 
 module.exports = helpers;
