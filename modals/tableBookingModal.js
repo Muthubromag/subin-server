@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const tableBookingSchema = mongoose.Schema(
   {
+    diningID: {
+      type: String,
+      required: true,
+    },
     tableNo: {
       type: String,
       required: true,
@@ -41,7 +45,7 @@ const tableBookingSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    timeSlot: {
+    diningTime: {
       type: String,
       required: true,
     },
@@ -51,7 +55,13 @@ const tableBookingSchema = mongoose.Schema(
     tablePic: {
       type: String,
     },
-    
+
+    timeSlot: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "table.timeSlots",
+      required: true,
+    },
+    bookingDate: { type: Date, required: true },
   },
   { timestamps: true }
 );

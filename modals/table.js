@@ -12,13 +12,17 @@ const tableSchema = mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
+      required: false,
     },
     status: {
       type: Boolean,
       default: false,
     },
-   
+    timeSlots: [
+      {
+        time: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );
