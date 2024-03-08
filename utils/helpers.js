@@ -137,6 +137,7 @@ async function sendPushNotification(fcmToken, title, body, action, data) {
 }
 
 async function sendNotifications({ user_id, title, body }) {
+  console.log({ user_id, title, body });
   try {
     if (!user_id) {
       return;
