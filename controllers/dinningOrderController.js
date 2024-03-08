@@ -3,6 +3,7 @@ const Cart = require("../modals/cart.models");
 const Booking = require("../modals/tableBookingModal");
 const Tables = require("../modals/table");
 const _ = require("lodash");
+const { sendNotifications } = require("../utils/helpers");
 
 const createDinningOrder = async (req, res) => {
   try {
@@ -28,13 +29,27 @@ const getDinningOrder = async (req, res) => {
 
 const updateDinningOrder = async (req, res) => {
   const { id } = req.params;
+
+  const { status } = req.body;
+  let user_id = null;
   try {
     const result = await dinning.findByIdAndUpdate(id, { ...req.body });
+    user_id = result?.userId;
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "dining",
+      status: req.body.status,
+    });
     return res.status(200).send({ data: result });
   } catch (e) {
+    console.log(e);
     return res
       .status(500)
       .send("Something went wrong while updating dinning order");
+  } finally {
+    sendNotifications({ title: "Dining order", body: status, user_id });
   }
 };
 
@@ -56,6 +71,13 @@ const addDiningOrder = async (req, res) => {
     await dinning.create(formData);
     let where = { bookingRef: _.get(req, "body.bookingId", "") };
     await Cart.deleteMany(where);
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "dining",
+      status: "Order received",
+    });
     return res.status(200).send({ message: "successs" });
   } catch (err) {
     return res
