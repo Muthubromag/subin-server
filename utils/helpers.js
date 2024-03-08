@@ -146,8 +146,20 @@ async function sendNotifications({ user_id, title, body }) {
     console.log({ user: result });
     if (result?.tokens?.length) {
       const response = await getMessaging().sendEachForMulticast({
-        data: { title, body, logo: `${process.env.BACKEND_URL}/logo.png` },
+        data: {
+          title,
+          body,
+          logo: `${process.env.BACKEND_URL}/logo.png`,
+          url: process.env.FRONTEND_URL,
+        },
+        notification: {
+          title,
+          body,
+          imageUrl: `${process.env.BACKEND_URL}/logo.png`,
+        },
+
         tokens: result?.tokens,
+        webpush: { fcmOptions: { link: process.env.FRONTEND_URL } },
       });
 
       console.log({ response });
