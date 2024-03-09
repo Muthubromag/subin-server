@@ -30,7 +30,7 @@ jobs:
     - run: pwd
     - run: cp /home/ubuntu/serverenv/.env /home/ubuntu/serverdev/_work/BROMAG-IN-SERVER/BROMAG-IN-SERVER
 
-    - run: pm2 start index.js --name staging
+    - run: pm2 restart staging
     
     
   
