@@ -26,6 +26,14 @@ const createFooter = async (req, res) => {
         });
 
         return res.status(200).send({ message: "Footer created successfully" });
+      } else {
+        await footer.create({
+          name: get(req, "body.name"),
+          email: get(req, "body.email"),
+          contactNumber: get(req, "body.number"),
+          address: get(req, "body.address"),
+        });
+        return res.status(200).send({ message: "Footer created successfully" });
       }
     } else {
       const logo = req.file;
@@ -50,7 +58,7 @@ const createFooter = async (req, res) => {
         return res.status(200).send({ message: "Footer Updated successfully" });
       } else {
         const { primaryColor, secondaryColor, thirdColor, fourthColor } =
-          req.body;  
+          req.body;
         const data = await footer.findByIdAndUpdate(isFooter[0]._id, {
           name: get(req, "body.name"),
           email: get(req, "body.email"),
