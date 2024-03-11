@@ -1,6 +1,7 @@
 const footer = require("../modals/footerModal");
 const { get } = require("lodash");
 const helpers = require("../utils/helpers");
+const policy = require("../modals/policy");
 
 const createFooter = async (req, res) => {
   try {
@@ -84,16 +85,39 @@ const createFooter = async (req, res) => {
     }
   } catch (err) {
     console.log(err);
+    return res.status(500).send({ message: "Something went wrong" });
+  }
+};
+const addWhoWeAre = async (req, res) => {
+  try {
+    const { type, content } = req.body;
+
+    // Check if the policy with the specified type exists
+    const existingPolicy = await policy.findOne({ type });
+
+    if (existingPolicy) {
+      // If the policy exists, update its content
+      await policy.updateOne({ type }, { content });
+      return res.status(200).send({ message: "Policy updated successfully" });
+    } else {
+      // If the policy doesn't exist, create a new one
+      await policy.create({ type, content });
+      return res.status(200).send({ message: "Policy created successfully" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({ message: "Something went wrong" });
   }
 };
 
 const getFooter = async (req, res) => {
   try {
     const result = await footer.find({});
-    return res.status(200).send({ data: result });
+    const policies = await policy.find({});
+    return res.status(200).send({ data: result, policies });
   } catch (err) {
     console.log(err);
   }
 };
 
-module.exports = { createFooter, getFooter };
+module.exports = { createFooter, getFooter, addWhoWeAre };

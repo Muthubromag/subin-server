@@ -6,6 +6,7 @@ const {
   getCoupons,
   getCouponsByUser,
   updateCoupon,
+  getCouponsCodeByUser,
 } = require("../controllers/couponController");
 const { webTokenMiddleware } = require("../middleWare/webMiddleware");
 
@@ -17,5 +18,6 @@ router
 
 // web
 router.get("/getusercoupons", webTokenMiddleware, getCouponsByUser);
+router.post("/getusercode", webTokenMiddleware, getCouponsCodeByUser);
 
 module.exports = router;
