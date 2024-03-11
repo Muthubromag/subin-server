@@ -6,7 +6,7 @@ const { default: mongoose } = require("mongoose");
 
 const createCoupon = async (req, res) => {
   try {
-    const { code, discountPercentage, validUntil } = req.body;
+    const { code, discountPercentage, validUntil, couponType } = req.body;
     const existingCoupon = await Coupon.aggregate([
       {
         $match: {
@@ -23,6 +23,7 @@ const createCoupon = async (req, res) => {
       code,
       discountPercentage,
       validUntil,
+      couponType,
     });
 
     return res.status(200).send({ message: "Coupon created successfully" });
@@ -34,7 +35,7 @@ const createCoupon = async (req, res) => {
 
 const getCoupons = async (req, res) => {
   try {
-    const result = await Coupon.find({});
+    const result = await Coupon.find({}).sort({ createdAt: -1 });
     return res.status(200).send({ data: result });
   } catch (e) {
     return res.status(500).send("Something went wrong while fetching Coupon");
@@ -43,7 +44,7 @@ const getCoupons = async (req, res) => {
 
 const updateCoupon = async (req, res) => {
   const { id } = req.params;
-  const { code, discountPercentage, validUntil, status } = req.body;
+  const { code, discountPercentage, validUntil, status, couponType } = req.body;
   console.log({ id });
   try {
     const existingCoupon = await Coupon.aggregate([
@@ -67,6 +68,7 @@ const updateCoupon = async (req, res) => {
       discountPercentage,
       validUntil,
       status,
+      couponType,
     });
     return res.status(200).send({ Message: "Coupon updated successfully" });
   } catch (e) {
@@ -99,6 +101,30 @@ const getCouponsByUser = async (req, res) => {
     const unusedCoupons = await Coupon.find({
       status: "active",
       usedBy: { $nin: [userId] },
+      couponType: "coupon",
+    });
+
+    return res.status(200).json(unusedCoupons);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getCouponsCodeByUser = async (req, res) => {
+  const { _id: userId } = req.body?.userDetails;
+  const { code } = req.body;
+  console.log({ userId });
+  try {
+    if (!userId) {
+      return res.status(200).json([]);
+    }
+    // Find coupons that are active and have not been used by the specified user
+    const unusedCoupons = await Coupon.findOne({
+      status: "active",
+      usedBy: { $nin: [userId] },
+      couponType: "code",
+      code,
     });
 
     return res.status(200).json(unusedCoupons);
@@ -114,4 +140,5 @@ module.exports = {
   getCouponsByUser,
   deleteCoupon,
   updateCoupon,
+  getCouponsCodeByUser,
 };
