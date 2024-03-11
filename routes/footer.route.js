@@ -5,11 +5,13 @@ const {
   getFooter,
   updateFooter,
   deleteFooter,
+  addWhoWeAre,
 } = require("../controllers/footer.controller");
 const upload = require("../helper/upload");
 
 router
   .post("/create_footer", upload.single("file"), createFooter)
+  .post("/whoweare", addWhoWeAre)
   .get("/get_footer", getFooter);
 // .put("/update_footer/:id",upload.single("file"), updateFooter).delete("/delete_footer/:id",deleteFooter);
 
