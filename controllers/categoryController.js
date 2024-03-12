@@ -204,10 +204,13 @@ const getFilteredProducts = async (req, res) => {
     console.log(where);
 
     try {
-      const productData = await Product.find(where).sort([
-        ["updatedAt", "desc"],
-        ["createdAt", "desc"],
-      ]);
+      const productData = await Product.find(where)
+        .collation({ locale: "en", caseLevel: false, numericOrdering: false })
+        .sort(
+          { name: 1 }
+          // ["updatedAt", "desc"],
+          // ["createdAt", "desc"],
+        );
       console.log(productData);
       return res.status(200).send({ data: productData });
     } catch (error) {
