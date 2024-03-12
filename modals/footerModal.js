@@ -13,10 +13,14 @@ const footerSchema = mongoose.Schema(
       thirdColor: String,
       fourthColor: String,
     },
-    content:String,
-    status:Boolean,
+    content: String,
+    status: Boolean,
+    location: {
+      map_link: String,
+      embedUrl: String,
+    },
   },
-  
+
   { timestamps: true }
 );
 

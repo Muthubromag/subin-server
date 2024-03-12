@@ -2,7 +2,7 @@ const footer = require("../modals/footerModal");
 const { get } = require("lodash");
 const helpers = require("../utils/helpers");
 const policy = require("../modals/policy");
-
+const socialMedia = require("../modals/socialMediaFooter");
 const createFooter = async (req, res) => {
   try {
     const isFooter = await footer.find({});
@@ -24,6 +24,7 @@ const createFooter = async (req, res) => {
           address: get(req, "body.address"),
           logo: image,
           colors: get(isFooter, "[0].colors"),
+          location: get(req, "body.location"),
         });
 
         return res.status(200).send({ message: "Footer created successfully" });
@@ -33,6 +34,7 @@ const createFooter = async (req, res) => {
           email: get(req, "body.email"),
           contactNumber: get(req, "body.number"),
           address: get(req, "body.address"),
+          location: get(req, "body.location"),
         });
         return res.status(200).send({ message: "Footer created successfully" });
       }
@@ -78,6 +80,10 @@ const createFooter = async (req, res) => {
               ? fourthColor
               : isFooter[0].colors.fourthColor,
           },
+          location: {
+            map_link: get(req, "body.map_link"),
+            embedUrl: get(req, "body.embedUrl"),
+          },
           content: get(req, "body.content"),
         });
         return res.status(200).send({ message: "Footer Updated successfully" });
@@ -114,7 +120,8 @@ const getFooter = async (req, res) => {
   try {
     const result = await footer.find({});
     const policies = await policy.find({});
-    return res.status(200).send({ data: result, policies });
+    const social = await socialMedia.find({});
+    return res.status(200).send({ data: result, policies, social });
   } catch (err) {
     console.log(err);
   }
