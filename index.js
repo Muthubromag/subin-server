@@ -38,6 +38,8 @@ const deliveryManOrderStatusRoute = require("./routes/deliveryManOrderStatus.rou
 const footerRoute = require("./routes/footer.route.js");
 const couponRoute = require("./routes/couponRoute.js");
 const socialMediaSettings = require("./routes/socialMediaSettings.js");
+const chargeRoute = require("./routes/chargeRoute.js");
+
 const restaurantStatusRoute = require("./routes/restaurantStatusRoute.js");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -97,6 +99,7 @@ app.use("/", deliveryManOrderStatusRoute);
 app.use("/", restaurantStatusRoute);
 app.use("/", footerRoute);
 app.use("/", socialMediaSettings);
+app.use("/", chargeRoute);
 app.use("/delivery-boy", require("./routes/delivery-boy.routes.js"));
 
 // Socket.io connection handling

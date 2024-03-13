@@ -120,7 +120,7 @@ const getFooter = async (req, res) => {
   try {
     const result = await footer.find({});
     const policies = await policy.find({});
-    const social = await socialMedia.find({});
+    const social = await socialMedia.find({ status: true });
     return res.status(200).send({ data: result, policies, social });
   } catch (err) {
     console.log(err);
