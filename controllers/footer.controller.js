@@ -3,6 +3,7 @@ const { get } = require("lodash");
 const helpers = require("../utils/helpers");
 const policy = require("../modals/policy");
 const socialMedia = require("../modals/socialMediaFooter");
+const chargeModal = require("../modals/chargeModal");
 const createFooter = async (req, res) => {
   try {
     const isFooter = await footer.find({});
@@ -120,8 +121,9 @@ const getFooter = async (req, res) => {
   try {
     const result = await footer.find({});
     const policies = await policy.find({});
-    const social = await socialMedia.find({});
-    return res.status(200).send({ data: result, policies, social });
+    const social = await socialMedia.find({ status: true });
+    const charges = await chargeModal.find();
+    return res.status(200).send({ data: result, policies, social, charges });
   } catch (err) {
     console.log(err);
   }
