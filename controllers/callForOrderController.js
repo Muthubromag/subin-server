@@ -3,7 +3,7 @@ const _ = require("lodash");
 const User = require("../modals/userModal");
 const Order = require("../modals/order");
 const productModal = require("../modals/productModal");
-
+const chargeModal = require("../modals/chargeModal");
 const GST = 5 / 100;
 const DELIVERY_CHARGE = 50;
 const PACKING_CHARGE = 10 / 100;
@@ -204,11 +204,32 @@ async function CreateUser(userData) {
   }
 }
 
-function calculatedExtraCharges({ amount, type }) {
-  let gst = amount * GST;
-  let delivery = type?.toLowerCase() === "take away" ? 0 : DELIVERY_CHARGE;
-  let packingPrice = amount * PACKING_CHARGE;
-  let transactionPrice = amount * TRANSACTION;
+async function calculatedExtraCharges({ amount, type }) {
+  const chargesdata = await chargeModal.find();
+  let charges = chargesdata?.[0];
+  console.log({ charges });
+  let cgst = charges?.gst?.value;
+  let gstMode = charges?.gst?.mode;
+  let cdelivery = charges?.delivery?.value;
+  let deliveryMode = charges?.delivery?.mode;
+  let cpacking = charges?.packing?.value;
+  let packingMode = charges?.packing?.mode;
+  let ctransaction = charges?.transaction?.value;
+  let transactionMode = charges?.transaction?.mode;
+
+  let gst = gstMode === "percentage" ? amount * (cgst / 100) : cgst;
+  let delivery =
+    type?.toLowerCase() !== "take away"
+      ? deliveryMode === "percentage"
+        ? amount * (cdelivery / 100)
+        : cdelivery
+      : 0;
+  let packingPrice =
+    packingMode === "percentage" ? amount * (cpacking / 100) : cpacking;
+  let transactionPrice =
+    transactionMode === "percentage"
+      ? amount * (ctransaction / 100)
+      : ctransaction;
   let total = gst + delivery + packingPrice + transactionPrice + amount;
   return {
     gst,
@@ -291,10 +312,11 @@ const createCallOrder = async (req, res) => {
         .status(500)
         .send("Something went wrong while creating call order");
     } else {
-      prices = calculatedExtraCharges({
+      prices = await calculatedExtraCharges({
         amount,
         type: formData?.deliveryStatus,
       });
+      console.log({ prices });
       const result = await Order.create({
         ...formData,
         orderType: ORDERTYPE,
