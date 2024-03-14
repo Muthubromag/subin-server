@@ -2,9 +2,8 @@ const mongoose = require("mongoose");
 const couponSchema = new mongoose.Schema(
   {
     orderType: {
-      type: String,
-      enum: ["online", "takeaway", "all"],
-      default: "all",
+      type: [String],
+      required: true,
     },
     min_purchase: { type: Number, required: true, default: 0 },
     max_discount: { type: Number, required: true, default: 0 },
@@ -16,7 +15,7 @@ const couponSchema = new mongoose.Schema(
       default: "fixed",
     },
     expiry: { type: Date, required: true },
-    status: { type: String, enum: ["active", "inactive"], default: "active" },
+    status: { type: Boolean, required: true, default: true },
     usedBy: [{ type: String }],
     deliveryFree: { type: Boolean, default: false },
     fileName: { type: String, required: true },

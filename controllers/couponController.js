@@ -20,12 +20,13 @@ const createCoupon = async (req, res) => {
       image,
       info,
     } = req.body;
+    console.log(orderType, orderType?.split(","));
     const file = req.file?.key;
     const filePath = helpers.getS3FileUrl(file);
     const couponExpiry = new Date(expiry);
     couponExpiry.setHours(23, 59, 59, 999);
     const result = await Coupon.create({
-      orderType,
+      orderType: orderType?.split(","),
       min_purchase,
       max_discount,
       discount,
@@ -74,42 +75,69 @@ const updateCoupons = async (req, res) => {
   } = req.body;
   console.log({ id });
   let newImage = null;
-  let oldImage = "";
+  let oldfileName = "";
+  let oldImageUrl = "";
   let fileName = "";
   try {
     const existingCoupon = await Coupon.findOne({
       _id: new mongoose.Types.ObjectId(id),
     });
     console.log({ existingCoupon });
-    oldImage = existingCoupon?.fileName;
-
-    if (isFileChanged) {
+    oldfileName = existingCoupon?.fileName;
+    oldImageUrl = existingCoupon?.iamge;
+    if (isFileChanged && req.file?.key) {
       fileName = req.file?.key;
       newImage = helpers.getS3FileUrl(fileName);
     }
 
-    console.log({ oldImage, newImage });
+    const couponExpiry = new Date(expiry);
+    couponExpiry.setHours(23, 59, 59, 999);
+
+    console.log({ oldImageUrl, newImage });
 
     const result = await Coupon.findByIdAndUpdate(
       id,
       {
-        orderType,
+        orderType: orderType?.split(","),
         min_purchase,
         max_discount,
         discount,
         discount_type,
-        expiry,
+        expiry: couponExpiry,
         status,
         deliveryFree,
-        fileName,
-        image: newImage || oldImage,
+        fileName: fileName || oldfileName,
+        image: newImage || oldImageUrl,
         info,
       },
       { new: true }
     );
-    if (isFileChanged && oldImage) {
-      await deleteS3Image(oldImage);
+    if (isFileChanged && oldfileName) {
+      await deleteS3Image(oldfileName);
     }
+    return res
+      .status(200)
+      .send({ Message: "Coupon updated successfully", result });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send("Something went wrong while updating Coupon");
+  } finally {
+  }
+};
+
+const updateCouponStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const result = await Coupon.findByIdAndUpdate(
+      id,
+      {
+        status,
+      },
+      { new: true }
+    );
+
     return res
       .status(200)
       .send({ Message: "Coupon updated successfully", result });
@@ -188,4 +216,5 @@ module.exports = {
   deleteCoupon,
   updateCoupons,
   getCouponsCodeByUser,
+  updateCouponStatus,
 };
