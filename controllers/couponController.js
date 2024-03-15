@@ -3,30 +3,47 @@ const Coupon = require("../modals/CouponModal");
 
 const helpers = require("../utils/helpers");
 const { default: mongoose } = require("mongoose");
+const { deleteS3Image } = require("../utils/aws");
 
 const createCoupon = async (req, res) => {
   try {
-    const { code, discountPercentage, validUntil, couponType } = req.body;
-    const existingCoupon = await Coupon.aggregate([
-      {
-        $match: {
-          code: { $eq: code },
-        },
-      },
-    ]);
+    const {
+      orderType,
+      min_purchase,
+      max_discount,
+      discount,
+      discount_type,
+      expiry,
+      status = true,
 
-    if (existingCoupon.length > 0) {
-      return res.status(400).send(`Coupon Code  '${code}' already exists .`);
-    }
+      deliveryFree = false,
+      image,
+      info,
+    } = req.body;
+    console.log(orderType, orderType?.split(","));
+    const file = req.file?.key;
 
-    await Coupon.create({
-      code,
-      discountPercentage,
-      validUntil,
-      couponType,
+    const filePath = helpers.getS3FileUrl(file);
+
+    const couponExpiry = new Date(expiry);
+    couponExpiry.setHours(23, 59, 59, 999);
+    const result = await Coupon.create({
+      orderType: orderType?.split(","),
+      min_purchase,
+      max_discount,
+      discount,
+      discount_type,
+      expiry: couponExpiry,
+      status,
+      deliveryFree: deliveryFree !== "undefined" ? deliveryFree : false,
+      image: filePath,
+      fileName: file,
+      info,
     });
 
-    return res.status(200).send({ message: "Coupon created successfully" });
+    return res
+      .status(200)
+      .send({ message: "Coupon created successfully", result });
   } catch (err) {
     console.log(err);
     return res.status(500).send("Something went wrong while creating Coupon");
@@ -42,38 +59,94 @@ const getCoupons = async (req, res) => {
   }
 };
 
-const updateCoupon = async (req, res) => {
+const updateCoupons = async (req, res) => {
   const { id } = req.params;
-  const { code, discountPercentage, validUntil, status, couponType } = req.body;
+  const {
+    orderType,
+    min_purchase,
+    max_discount,
+    discount,
+    discount_type,
+    expiry,
+    status,
+
+    deliveryFree,
+    image,
+    info,
+    isFileChanged,
+  } = req.body;
   console.log({ id });
+  let newImage = null;
+  let oldfileName = "";
+  let oldImageUrl = "";
+  let fileName = "";
   try {
-    const existingCoupon = await Coupon.aggregate([
-      {
-        $match: {
-          $and: [
-            { code: { $eq: code } },
-            { _id: { $ne: new mongoose.Types.ObjectId(id) } },
-          ],
-        },
-      },
-    ]);
-
-    console.log({ existingCoupon });
-
-    if (existingCoupon?.length > 0) {
-      return res.status(400).send(`Coupon Code  '${code}' already exists .`);
-    }
-    await Coupon.findByIdAndUpdate(id, {
-      code,
-      discountPercentage,
-      validUntil,
-      status,
-      couponType,
+    const existingCoupon = await Coupon.findOne({
+      _id: new mongoose.Types.ObjectId(id),
     });
-    return res.status(200).send({ Message: "Coupon updated successfully" });
+    console.log({ existingCoupon });
+    oldfileName = existingCoupon?.fileName;
+    oldImageUrl = existingCoupon?.image;
+
+    const couponExpiry = new Date(expiry);
+    couponExpiry.setHours(23, 59, 59, 999);
+
+    let data = {
+      orderType: orderType?.split(","),
+      min_purchase,
+      max_discount,
+      discount,
+      discount_type,
+      expiry: couponExpiry,
+      status,
+      deliveryFree,
+
+      info,
+    };
+    console.log({ isFileChanged, filePath: req.file?.key });
+    if (isFileChanged === "true" && req.file?.key) {
+      fileName = req.file?.key;
+      newImage = helpers.getS3FileUrl(fileName);
+      data.fileName = fileName;
+      data.image = newImage;
+    }
+
+    console.log({ data });
+
+    const result = await Coupon.findByIdAndUpdate(id, data, { new: true });
+    if (isFileChanged === "true" && oldfileName) {
+      await deleteS3Image(oldfileName);
+    }
+    return res
+      .status(200)
+      .send({ Message: "Coupon updated successfully", result });
   } catch (e) {
     console.log(e);
     return res.status(500).send("Something went wrong while updating Coupon");
+  } finally {
+  }
+};
+
+const updateCouponStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const result = await Coupon.findByIdAndUpdate(
+      id,
+      {
+        status,
+      },
+      { new: true }
+    );
+
+    return res
+      .status(200)
+      .send({ Message: "Coupon updated successfully", result });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).send("Something went wrong while updating Coupon");
+  } finally {
   }
 };
 
@@ -81,9 +154,12 @@ const deleteCoupon = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Coupon.findByIdAndDelete(id);
+    const result = await Coupon.findByIdAndDelete(id);
+    if (result?.fileName) {
+      await deleteS3Image(result?.fileName);
+    }
 
-    return res.status(200).send("Coupon deleted");
+    return res.status(200).send({ msg: "Coupon deleted", result });
   } catch (e) {
     return res.status(500).send("Something went wrong while deleting coupon");
   }
@@ -97,11 +173,12 @@ const getCouponsByUser = async (req, res) => {
     if (!userId) {
       return res.status(200).json([]);
     }
+    const currentDate = new Date();
     // Find coupons that are active and have not been used by the specified user
     const unusedCoupons = await Coupon.find({
-      status: "active",
+      status: true,
       usedBy: { $nin: [userId] },
-      couponType: "coupon",
+      expiry: { $gte: currentDate },
     });
 
     return res.status(200).json(unusedCoupons);
@@ -139,6 +216,7 @@ module.exports = {
   getCoupons,
   getCouponsByUser,
   deleteCoupon,
-  updateCoupon,
+  updateCoupons,
   getCouponsCodeByUser,
+  updateCouponStatus,
 };

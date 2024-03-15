@@ -15,9 +15,16 @@ const takeAwaySchema = mongoose.Schema(
       required: true,
     },
     coupon: {
-      code: { type: String, default: null },
-      discountPercentage: { type: Number, default: 0 },
+      min_purchase: { type: Number, required: false, default: 0 },
+      max_discount: { type: Number, required: false, default: 0 },
       _id: { type: String, default: null },
+      discount: { type: Number, required: false },
+      discount_type: {
+        type: String,
+
+        required: false,
+      },
+      deliveryFree: { type: Boolean, default: false },
       // Other properties related to the coupon
     },
     customerName: {

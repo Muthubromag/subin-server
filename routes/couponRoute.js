@@ -5,15 +5,18 @@ const {
   deleteCoupon,
   getCoupons,
   getCouponsByUser,
-  updateCoupon,
+  updateCoupons,
   getCouponsCodeByUser,
+  updateCouponStatus,
 } = require("../controllers/couponController");
 const { webTokenMiddleware } = require("../middleWare/webMiddleware");
+const { uploadCoupon } = require("../utils/aws");
 
 router
-  .post("/createcoupon", createCoupon)
+  .post("/createcoupon", uploadCoupon, createCoupon)
   .get("/getcoupons", getCoupons)
-  .put("/updatecoupon/:id", updateCoupon)
+  .put("/updatecoupon/:id", uploadCoupon, updateCoupons)
+  .put("/updateCouponStatus/:id", updateCouponStatus)
   .delete("/deletecoupon/:id", deleteCoupon);
 
 // web
