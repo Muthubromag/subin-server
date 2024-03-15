@@ -90,10 +90,14 @@ const addOnlineOrder = async (req, res) => {
       coupon: coupon
         ? {
             _id: coupon?._id,
-            discountPercentage: Number(coupon?.discountPercentage),
-            code: coupon?.code,
+            min_purchase: coupon?.min_purchase,
+            max_discount: coupon?.max_discount,
+            discount: coupon?.discount,
+            discount_type: coupon?.discount_type,
+            deliveryFree: coupon?.deliveryFree,
           }
         : {},
+      isDeliveryFree: _.get(req, "body.isDeliverFree", false),
       gst: _.get(req, "body.gst", ""),
       deliveryCharge: _.get(req, "body.deliveryCharge", ""),
       packingCharge: _.get(req, "body.packingCharge", ""),
@@ -110,6 +114,7 @@ const addOnlineOrder = async (req, res) => {
       orderId: _.get(req, "body.orderId", ""),
       orderType: "online",
     };
+
     const result = await Order.create(formData);
     let where = {
       userRef: _.get(req, "body.userDetails._id", ""),
