@@ -14,15 +14,17 @@ const createCoupon = async (req, res) => {
       discount,
       discount_type,
       expiry,
-      status,
+      status = true,
 
-      deliveryFree,
+      deliveryFree = false,
       image,
       info,
     } = req.body;
     console.log(orderType, orderType?.split(","));
     const file = req.file?.key;
+
     const filePath = helpers.getS3FileUrl(file);
+
     const couponExpiry = new Date(expiry);
     couponExpiry.setHours(23, 59, 59, 999);
     const result = await Coupon.create({
@@ -33,7 +35,7 @@ const createCoupon = async (req, res) => {
       discount_type,
       expiry: couponExpiry,
       status,
-      deliveryFree,
+      deliveryFree: deliveryFree !== "undefined" ? deliveryFree : false,
       image: filePath,
       fileName: file,
       info,
@@ -84,35 +86,35 @@ const updateCoupons = async (req, res) => {
     });
     console.log({ existingCoupon });
     oldfileName = existingCoupon?.fileName;
-    oldImageUrl = existingCoupon?.iamge;
-    if (isFileChanged && req.file?.key) {
-      fileName = req.file?.key;
-      newImage = helpers.getS3FileUrl(fileName);
-    }
+    oldImageUrl = existingCoupon?.image;
 
     const couponExpiry = new Date(expiry);
     couponExpiry.setHours(23, 59, 59, 999);
 
-    console.log({ oldImageUrl, newImage });
+    let data = {
+      orderType: orderType?.split(","),
+      min_purchase,
+      max_discount,
+      discount,
+      discount_type,
+      expiry: couponExpiry,
+      status,
+      deliveryFree,
 
-    const result = await Coupon.findByIdAndUpdate(
-      id,
-      {
-        orderType: orderType?.split(","),
-        min_purchase,
-        max_discount,
-        discount,
-        discount_type,
-        expiry: couponExpiry,
-        status,
-        deliveryFree,
-        fileName: fileName || oldfileName,
-        image: newImage || oldImageUrl,
-        info,
-      },
-      { new: true }
-    );
-    if (isFileChanged && oldfileName) {
+      info,
+    };
+    console.log({ isFileChanged, filePath: req.file?.key });
+    if (isFileChanged === "true" && req.file?.key) {
+      fileName = req.file?.key;
+      newImage = helpers.getS3FileUrl(fileName);
+      data.fileName = fileName;
+      data.image = newImage;
+    }
+
+    console.log({ data });
+
+    const result = await Coupon.findByIdAndUpdate(id, data, { new: true });
+    if (isFileChanged === "true" && oldfileName) {
       await deleteS3Image(oldfileName);
     }
     return res
@@ -165,17 +167,17 @@ const deleteCoupon = async (req, res) => {
 
 // web
 const getCouponsByUser = async (req, res) => {
-  // const { _id: userId } = req.body?.userDetails;
-  // console.log({ userId });
+  const { _id: userId } = req.body?.userDetails;
+  console.log({ userId });
   try {
-    // if (!userId) {
-    //   return res.status(200).json([]);
-    // }
+    if (!userId) {
+      return res.status(200).json([]);
+    }
     const currentDate = new Date();
     // Find coupons that are active and have not been used by the specified user
     const unusedCoupons = await Coupon.find({
-      status: "active",
-      // usedBy: { $nin: [userId] },
+      status: true,
+      usedBy: { $nin: [userId] },
       expiry: { $gte: currentDate },
     });
 

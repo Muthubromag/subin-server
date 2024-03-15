@@ -20,7 +20,7 @@ router
   .delete("/deletecoupon/:id", deleteCoupon);
 
 // web
-router.get("/getusercoupons", getCouponsByUser);
+router.get("/getusercoupons", webTokenMiddleware, getCouponsByUser);
 router.post("/getusercode", webTokenMiddleware, getCouponsCodeByUser);
 
 module.exports = router;

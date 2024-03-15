@@ -72,8 +72,11 @@ const addTakeAwayOrder = async (req, res) => {
       coupon: coupon
         ? {
             _id: coupon?._id,
-            discountPercentage: Number(coupon?.discountPercentage),
-            code: coupon?.code,
+            min_purchase: coupon?.min_purchase,
+            max_discount: coupon?.max_discount,
+            discount: coupon?.discount,
+            discount_type: coupon?.discount_type,
+            deliveryFree: coupon?.deliveryFree,
           }
         : {},
       gst: _.get(req, "body.gst", ""),
