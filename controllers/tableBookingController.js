@@ -70,6 +70,13 @@ const bookMyTable = async (req, res) => {
     //   { _id: _.get(req, "body.tableId", "") },
     //   { status: true }
     // );
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "Dining",
+      status: "Table Booked",
+    });
     return res.status(200).send({
       message: "Your table reservation has been successfully confirmed.",
     });
@@ -102,6 +109,14 @@ const cancelBooking = async (req, res) => {
       { _id: _.get(req, "body.table_id", "") },
       { status: false }
     );
+
+    const io = req.app.get("socketio");
+
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "Dining",
+      status: "Table Cancelled",
+    });
     return res.status(200).send({ message: "Success" });
   } catch (err) {
     return res
@@ -116,6 +131,7 @@ const checkInBooking = async (req, res) => {
       { _id: _.get(req, "body.booking_id", "") },
       { booking: "CheckIn" }
     );
+
     return res.status(200).send({ message: "Success" });
   } catch (err) {
     return res
