@@ -26,6 +26,8 @@ const createFooter = async (req, res) => {
           logo: image,
           colors: get(isFooter, "[0].colors"),
           location: get(req, "body.location"),
+          latitude: get(req, "body.latitude"),
+          longitude: get(req, "body.longitude"),
         });
 
         return res.status(200).send({ message: "Footer created successfully" });
@@ -36,6 +38,8 @@ const createFooter = async (req, res) => {
           contactNumber: get(req, "body.number"),
           address: get(req, "body.address"),
           location: get(req, "body.location"),
+          latitude: get(req, "body.latitude"),
+          longitude: get(req, "body.longitude"),
         });
         return res.status(200).send({ message: "Footer created successfully" });
       }
@@ -57,6 +61,8 @@ const createFooter = async (req, res) => {
           address: get(req, "body.address"),
           logo: image,
           colors: get(isFooter, "[0].colors"),
+          latitude: get(req, "body.latitude"),
+          longitude: get(req, "body.longitude"),
         });
 
         return res.status(200).send({ message: "Footer Updated successfully" });
@@ -85,6 +91,8 @@ const createFooter = async (req, res) => {
             map_link: get(req, "body.map_link"),
             embedUrl: get(req, "body.embedUrl"),
           },
+          latitude: get(req, "body.latitude"),
+          longitude: get(req, "body.longitude"),
           content: get(req, "body.content"),
         });
         return res.status(200).send({ message: "Footer Updated successfully" });

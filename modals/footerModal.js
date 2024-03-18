@@ -19,6 +19,12 @@ const footerSchema = mongoose.Schema(
       map_link: String,
       embedUrl: String,
     },
+    latitude: {
+      type: String,
+    },
+    longitude: {
+      type: String,
+    },
   },
 
   { timestamps: true }
