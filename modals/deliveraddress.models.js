@@ -8,8 +8,8 @@ const deliveryAddressSchema = mongoose.Schema(
     streetName: {
       type: String,
     },
-    addressType:{
-      type:String,
+    addressType: {
+      type: String,
     },
     landMark: {
       type: String,
@@ -26,8 +26,17 @@ const deliveryAddressSchema = mongoose.Schema(
     userId: {
       type: String,
     },
-    mobileNumber: {
+    contactNumber: {
       type: String,
+    },
+
+    latitude: { type: String },
+    longitude: { type: String },
+    currentLocation: {
+      type: Boolean,
+    },
+    distance: {
+      type: Number,
     },
   },
   { timestamps: true }
