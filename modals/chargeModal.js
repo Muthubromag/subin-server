@@ -17,17 +17,30 @@ const ChargeSchema = mongoose.Schema(
       },
     },
     delivery: {
-      value: {
+      min_km: {
         type: Number,
         required: true,
         default: 0,
       },
-
-      mode: {
-        type: String,
-        enum: ["percentage", "fixed"],
+      min_price: {
+        type: Number,
         required: true,
-        default: "fixed",
+        default: 0,
+      },
+      max_km: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      max_price: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      extra_charges: {
+        type: Number,
+        required: true,
+        default: 0,
       },
     },
     packing: {
