@@ -18,6 +18,11 @@ const addDeliveryAddress = async (req, res) => {
     if (isNaN(distance)) {
       return res.status(500).send("unable to calculate distance");
     }
+    if (distance >= 20) {
+      return res
+        .status(400)
+        .send("Right Now ,We are not serving at this  location");
+    }
     let formData = {
       name: _.get(req, "body.name"),
       streetName: _.get(req, "body.streetName"),
@@ -48,7 +53,9 @@ const getDeliveryAddress = async (req, res) => {
         userId: _.get(req, "body.userDetails._id"),
       },
       { userId: 0 }
-    );
+    ).sort({
+      createdAt: -1,
+    });
     return res.status(200).send({ data: allAddress });
   } catch (err) {
     return res.status(500).send("Something went wrong");
@@ -57,6 +64,23 @@ const getDeliveryAddress = async (req, res) => {
 
 const updateDeliveryAddress = async (req, res) => {
   try {
+    const { latitude, longitude } = req.body;
+    const result = await footerModal.find({});
+
+    const distance = await calculateDistance(
+      Number(result?.[0]?.latitude),
+      Number(result?.[0]?.longitude),
+      Number(latitude),
+      Number(longitude)
+    );
+    if (isNaN(distance)) {
+      return res.status(500).send("unable to calculate distance");
+    }
+    if (distance >= 20) {
+      return res
+        .status(400)
+        .send("Right Now ,We are not serving at this  location");
+    }
     let formData = {
       name: _.get(req, "body.name"),
       streetName: _.get(req, "body.streetName"),
@@ -66,14 +90,18 @@ const updateDeliveryAddress = async (req, res) => {
       picCode: _.get(req, "body.picCode"),
       customerState: _.get(req, "body.customerState"),
       contactNumber: _.get(req, "body.contactNumber"),
+      latitude: _.get(req, "body.latitude"),
+      longitude: _.get(req, "body.longitude"),
+      currentLocation: _.get(req, "body.currentLocation"),
+      distance: distance?.toFixed(0),
       userId: _.get(req, "body.userDetails._id"),
     };
 
-    const result = await Delivery.findByIdAndUpdate(
+    const result1 = await Delivery.findByIdAndUpdate(
       { _id: _.get(req, "body._id", "") },
       formData
     );
-    console.log(result);
+    console.log(result1);
     return res.status(200).send("The address has been updated successfully.");
   } catch (err) {
     return res.status(500).send("Something went wrong");

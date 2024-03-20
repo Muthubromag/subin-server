@@ -19,7 +19,7 @@ const createProduct = async (req, res) => {
   const isMultiTyped = req.body.isMultiTyped === "true";
   console.log(req.body, isMultiTyped);
   let maximumCuisines = 500;
-  let totalMenu = 50;
+  let totalMenu = 200;
 
   const isCount = await product.find({ categoryId });
   const totalMenuCount = await product.countDocuments({});
