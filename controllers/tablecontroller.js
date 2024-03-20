@@ -2,7 +2,7 @@ const Table = require("../modals/table");
 const { get } = require("lodash");
 const helpers = require("../utils/helpers");
 const tableBookingModal = require("../modals/tableBookingModal");
-
+const moment = require("moment");
 const createTable = async (req, res) => {
   try {
     const tablePhto = req.file;
@@ -74,7 +74,9 @@ const getTableslots = async (req, res) => {
     const { tableId, bookingDate } = req.body;
     const table = await Table.findById(tableId);
     const formattedBookingDate = new Date(bookingDate);
-
+    const today = moment();
+    const bookDate = moment(bookingDate);
+    const isSameDay = bookDate?.isSame(today, "day");
     // Get booked time slots for the specified date
     const bookedTimeSlots = await tableBookingModal
       .find({
@@ -83,12 +85,16 @@ const getTableslots = async (req, res) => {
       })
       .distinct("timeSlot");
     console.log({ bookedTimeSlots, table: table?.timeSlots });
-    const availableTimeSlots = table.timeSlots.filter((timeSlot) => {
+    const availableTimeSlots = table?.timeSlots?.filter((timeSlot) => {
       return !bookedTimeSlots.some((id) => id.equals(timeSlot._id));
     });
 
-    return res.status(200).send({ data: availableTimeSlots });
+    const slots = isSameDay
+      ? helpers.getAvailableSlots(availableTimeSlots)
+      : availableTimeSlots;
+    return res.status(200).send({ data: slots });
   } catch (e) {
+    console.log(e);
     return res.status(500).send("Something went wrong while fetching table");
   }
 };
