@@ -16,6 +16,7 @@ const S3 = new S3Client({
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
   },
 });
+const moment = require("moment");
 const crypto = require("crypto");
 
 // file can be buffer or path
@@ -247,7 +248,67 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return distance;
 }
 
+function getAvailableSlots(slots = []) {
+  const currentTime = moment();
+  console.log("test", currentTime);
+  const futureTimeSlots = slots?.filter((slot) => {
+    const startTime = slot.time.split(" - ")[0];
+    const [time, meridian] = startTime.split(" ");
+    const val = time.split(":")[0];
+
+    const cmeridian = startTime.split(" ")[0];
+
+    // Define 10:00 AM as another moment object
+    var targetTime = moment().set({
+      hour:
+        meridian === "AM"
+          ? Number(val)
+          : Number(val) === 12
+          ? Number(val)
+          : 12 + Number(val),
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    });
+    // console.log({
+    //   startTime,
+    //   currentTime,
+    //   time,
+    //   meridian,
+    //   val,
+
+    //   cmeridian,
+    //   targetTime,
+    // });
+    // Compare the two moments
+    if (currentTime.isBefore(targetTime)) {
+      console.log({
+        current: moment(currentTime).format("HH:mm a"),
+        target: moment(targetTime).format("HH:mm a"),
+        slot,
+        check: currentTime.isBefore(targetTime),
+        hour:
+          meridian === "AM"
+            ? Number(val)
+            : Number(val) === 12
+            ? Number(val)
+            : 12 + Number(val),
+      });
+      return slot;
+      console.log("The current time is before 10:00 AM.");
+    } else {
+      // console.log(
+      //   "The current time is after ",
+      //   moment(currentTime).format("HH:mm a")
+      // );
+    }
+  });
+
+  return futureTimeSlots;
+}
+
 const helpers = {
+  getAvailableSlots,
   calculateDistance,
   deleteFile,
   uploadFile,
