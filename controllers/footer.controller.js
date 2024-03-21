@@ -4,6 +4,7 @@ const helpers = require("../utils/helpers");
 const policy = require("../modals/policy");
 const socialMedia = require("../modals/socialMediaFooter");
 const chargeModal = require("../modals/chargeModal");
+const fcmModal = require("../modals/fcmmodal");
 const createFooter = async (req, res) => {
   try {
     const isFooter = await footer.find({});
@@ -125,6 +126,19 @@ const addWhoWeAre = async (req, res) => {
   }
 };
 
+const addFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+      await fcmModal.create({ fcm:token });
+      return res.status(200).send({ message: "token added" });
+    
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({ message: "Something went wrong" });
+  }
+};
+
 const getFooter = async (req, res) => {
   try {
     const result = await footer.find({});
@@ -137,4 +151,4 @@ const getFooter = async (req, res) => {
   }
 };
 
-module.exports = { createFooter, getFooter, addWhoWeAre };
+module.exports = { createFooter, getFooter, addWhoWeAre ,addFcmToken};
