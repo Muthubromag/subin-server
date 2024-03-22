@@ -8,6 +8,8 @@ const {
   sendAdminNotifications,
 } = require("../utils/helpers");
 const CouponModal = require("../modals/CouponModal");
+const takeAwayModal = require("../modals/takeAwayModal");
+const dinning = require("../modals/dinningOrder");
 const createOnlineOrder = async (req, res) => {
   try {
     // const result = await Order.create({ ...req.body, orderType: "online" });
@@ -133,7 +135,7 @@ const addOnlineOrder = async (req, res) => {
       );
       console.log({ updatedCoupon });
     }
-    console.log(result);
+    // console.log(result);
     const io = req.app.get("socketio");
 
     io.emit("demo", {
@@ -141,6 +143,7 @@ const addOnlineOrder = async (req, res) => {
       order: "online",
       status: "Order placed",
     });
+
     return res.status(200).send({ message: "success" });
   } catch (err) {
     console.log(err);
@@ -154,10 +157,31 @@ const addOnlineOrder = async (req, res) => {
   }
 };
 
+const checkAllOrders = async (req, res) => {
+  try {
+    const result = await Order.countDocuments({
+      status: "Order placed",
+    });
+    const result1 = await takeAwayModal.countDocuments({
+      status: "Order placed",
+    });
+    const result3 = await dinning.countDocuments({
+      status: "Order placed",
+    });
+
+    console.log(result, result1, result3);
+    return res.status(200).json(result || result1 || result3);
+  } catch (err) {
+    console.log(error);
+    return res.status(200).send(false);
+  }
+};
+
 module.exports = {
   createOnlineOrder,
   getOnlineOrder,
   deleteOnlineOrder,
   updateOnlineOrder,
   addOnlineOrder,
+  checkAllOrders,
 };

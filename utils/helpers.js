@@ -169,7 +169,7 @@ async function sendNotifications({ user_id, title, body }) {
         const failedTokens = [];
         response.responses.forEach((resp, idx) => {
           if (!resp.success) {
-            failedTokens.push(registrationTokens[idx]);
+            failedTokens.push(resp);
           }
         });
         console.log("List of tokens that caused failures: " + failedTokens);
