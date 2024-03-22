@@ -3,7 +3,10 @@ const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const Order = require("../modals/order");
 const User = require("../modals/userModal");
-const { sendNotifications } = require("../utils/helpers");
+const {
+  sendNotifications,
+  sendAdminNotifications,
+} = require("../utils/helpers");
 const CouponModal = require("../modals/CouponModal");
 const createOnlineOrder = async (req, res) => {
   try {
@@ -142,6 +145,12 @@ const addOnlineOrder = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).send("Something went wrong");
+  } finally {
+    sendAdminNotifications({
+      title: "Online order",
+      body: `Order ${req.body?.orderId} Received`,
+      url: `/onlineorder`,
+    });
   }
 };
 

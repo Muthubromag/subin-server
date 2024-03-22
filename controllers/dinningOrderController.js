@@ -3,7 +3,10 @@ const Cart = require("../modals/cart.models");
 const Booking = require("../modals/tableBookingModal");
 const Tables = require("../modals/table");
 const _ = require("lodash");
-const { sendNotifications } = require("../utils/helpers");
+const {
+  sendNotifications,
+  sendAdminNotifications,
+} = require("../utils/helpers");
 
 const createDinningOrder = async (req, res) => {
   try {
@@ -83,6 +86,12 @@ const addDiningOrder = async (req, res) => {
     return res
       .status(500)
       .send("Something went wrong while creating dinning order");
+  } finally {
+    sendAdminNotifications({
+      title: "Dining Order Received",
+      body: `Table ${req.body?.tableNo} ordered`,
+      url: `/dinning`,
+    });
   }
 };
 

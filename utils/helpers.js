@@ -18,6 +18,7 @@ const S3 = new S3Client({
 });
 const moment = require("moment");
 const crypto = require("crypto");
+const fcmmodal = require("../modals/fcmmodal.js");
 
 // file can be buffer or path
 function deleteFile(file) {
@@ -181,6 +182,56 @@ async function sendNotifications({ user_id, title, body }) {
   }
 }
 
+async function sendAdminNotifications({ user_id, title, body, url }) {
+  console.log({ user_id, title, body });
+  try {
+    // if (!user_id) {
+    //   return;
+    // }
+    const result = await fcmmodal.find({}).select("fcm");
+    console.log({ user: result });
+    if (result?.length) {
+      const tokens = [];
+      result.forEach((result) => {
+        tokens.push(result.fcm);
+      });
+
+      console.log({ tokens });
+      const response = await getMessaging().sendEachForMulticast({
+        data: {
+          title,
+          body,
+          logo: `${process.env.BACKEND_URL}/logo.png`,
+          url: process.env.ADMIN_URL + url,
+        },
+        notification: {
+          title,
+          body,
+          imageUrl: `${process.env.BACKEND_URL}/logo.png`,
+        },
+
+        tokens: tokens,
+        webpush: { fcmOptions: { link: process.env.ADMIN_URL } },
+      });
+
+      console.log({ response });
+      if (response.failureCount > 0) {
+        const failedTokens = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(registrationTokens[idx]);
+          }
+        });
+        console.log("List of tokens that caused failures: " + failedTokens);
+      }
+    } else {
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 function formatTime(date) {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -320,6 +371,7 @@ const helpers = {
   sendNotifications,
   generateTimeSlots,
   generateAlphanumericFromNamePhoneTimestamp,
+  sendAdminNotifications,
 };
 
 module.exports = helpers;

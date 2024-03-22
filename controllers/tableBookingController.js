@@ -3,6 +3,7 @@ const tableBooking = require("../modals/tableBookingModal");
 const _ = require("lodash");
 const {
   generateAlphanumericFromNamePhoneTimestamp,
+  sendAdminNotifications,
 } = require("../utils/helpers");
 
 const createTableBooking = async (req, res) => {
@@ -41,13 +42,15 @@ const updateTableBooking = async (req, res) => {
 };
 
 const bookMyTable = async (req, res) => {
+  let diningID = "";
   try {
     const code = await generateAlphanumericFromNamePhoneTimestamp(
       _.get(req, "body.customerName", ""),
       _.get(req, "body.contactNumber", "")
     );
+    diningID = `BRODINE${code}`;
     const formDatas = {
-      diningID: `BRODINE${code}`,
+      diningID: diningID,
       customerName: _.get(req, "body.customerName", ""),
       contactNumber: _.get(req, "body.contactNumber", ""),
       alterateContactNumber: _.get(req, "body.alterateContactNumber", ""),
@@ -83,6 +86,12 @@ const bookMyTable = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).send("Something went wrong");
+  } finally {
+    sendAdminNotifications({
+      title: "Dining Table Booked",
+      body: `Table Booked ${diningID}`,
+      url: `/bookingorder`,
+    });
   }
 };
 
@@ -100,11 +109,14 @@ const getAllBookedTables = async (req, res) => {
 };
 
 const cancelBooking = async (req, res) => {
+  let diningID = "";
   try {
-    await tableBooking.findByIdAndUpdate(
+    const result = await tableBooking.findByIdAndUpdate(
       { _id: _.get(req, "body.booking_id", "") },
       { booking: "Canceled" }
     );
+    console.log(result);
+    diningID = result?.diningID;
     await Table.findByIdAndUpdate(
       { _id: _.get(req, "body.table_id", "") },
       { status: false }
@@ -122,6 +134,12 @@ const cancelBooking = async (req, res) => {
     return res
       .status(500)
       .send("Something went wrong while updating tableBooking");
+  } finally {
+    sendAdminNotifications({
+      title: "Dining Table Cancelled",
+      body: `${diningID} Cancelled`,
+      url: `/bookingorder`,
+    });
   }
 };
 
