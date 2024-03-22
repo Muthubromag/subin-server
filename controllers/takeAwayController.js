@@ -2,7 +2,10 @@ const takeAway = require("../modals/takeAwayModal");
 const Cart = require("../modals/cart.models");
 const _ = require("lodash");
 const User = require("../modals/userModal");
-const { sendNotifications } = require("../utils/helpers");
+const {
+  sendNotifications,
+  sendAdminNotifications,
+} = require("../utils/helpers");
 const CouponModal = require("../modals/CouponModal");
 const createTakeAwayOrder = async (req, res) => {
   console.log("createtake away", req.body);
@@ -117,6 +120,12 @@ const addTakeAwayOrder = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).send("Something went wrong");
+  } finally {
+    sendAdminNotifications({
+      title: "Takeaway order",
+      body: `Order ${req.body?.orderId} Received`,
+      url: `/takeaway`,
+    });
   }
 };
 

@@ -130,9 +130,17 @@ const addFcmToken = async (req, res) => {
   try {
     const { token } = req.body;
 
-      await fcmModal.create({ fcm:token });
-      return res.status(200).send({ message: "token added" });
-    
+    // Check if token already exists
+    const isExist = await fcmModal.findOne({ fcm: token });
+
+    if (isExist) {
+      return res.status(200).send({ message: "Token already exists" });
+    }
+
+    // Token doesn't exist, add it to the database
+    await fcmModal.create({ fcm: token });
+
+    return res.status(200).send({ message: "Token added" });
   } catch (err) {
     console.error(err);
     return res.status(500).send({ message: "Something went wrong" });
@@ -151,4 +159,4 @@ const getFooter = async (req, res) => {
   }
 };
 
-module.exports = { createFooter, getFooter, addWhoWeAre ,addFcmToken};
+module.exports = { createFooter, getFooter, addWhoWeAre, addFcmToken };

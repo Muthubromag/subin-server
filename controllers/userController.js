@@ -6,6 +6,7 @@ const _ = require("lodash");
 const { default: axios } = require("axios");
 const { default: mongoose } = require("mongoose");
 const Order = require("../modals/order");
+const { sendAdminNotifications } = require("../utils/helpers");
 
 const getUser = async (req, res) => {
   try {
@@ -314,9 +315,10 @@ const updateProfile = async (req, res) => {
 };
 
 const cancelMyOrder = async (req, res) => {
+  let order_id = "";
+  const { order_type } = req.body;
   try {
     const { id } = req.params;
-    const { order_type } = req.body;
 
     const orderId = new mongoose.Types.ObjectId(id);
     console.log({ orderId, id, order_type });
@@ -335,6 +337,8 @@ const cancelMyOrder = async (req, res) => {
       { new: true }
     );
 
+    order_id = result?.orderId;
+
     const io = req.app.get("socketio");
 
     io.emit("demo", {
@@ -347,6 +351,17 @@ const cancelMyOrder = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).send({ message: "Something went wrong" });
+  } finally {
+    let order = order_type?.includes("online")
+      ? "/onlineorder"
+      : order_type?.includes("take")
+      ? "/takeaway"
+      : "/";
+    sendAdminNotifications({
+      title: `${order_type} order`,
+      body: `Order ${order_id} Cancelled`,
+      url: order,
+    });
   }
 };
 
