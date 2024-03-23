@@ -16,7 +16,9 @@ const S3 = new S3Client({
     secretAccessKey: process.env.SECRET_ACCESS_KEY,
   },
 });
+const moment = require("moment");
 const crypto = require("crypto");
+const fcmmodal = require("../modals/fcmmodal.js");
 
 // file can be buffer or path
 function deleteFile(file) {
@@ -167,6 +169,56 @@ async function sendNotifications({ user_id, title, body }) {
         const failedTokens = [];
         response.responses.forEach((resp, idx) => {
           if (!resp.success) {
+            failedTokens.push(resp);
+          }
+        });
+        console.log("List of tokens that caused failures: " + failedTokens);
+      }
+    } else {
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function sendAdminNotifications({ user_id, title, body, url }) {
+  console.log({ user_id, title, body });
+  try {
+    // if (!user_id) {
+    //   return;
+    // }
+    const result = await fcmmodal.find({}).select("fcm");
+    console.log({ user: result });
+    if (result?.length) {
+      const tokens = [];
+      result.forEach((result) => {
+        tokens.push(result.fcm);
+      });
+
+      console.log({ tokens });
+      const response = await getMessaging().sendEachForMulticast({
+        data: {
+          title,
+          body,
+          logo: `${process.env.BACKEND_URL}/logo.png`,
+          url: process.env.ADMIN_URL + url,
+        },
+        notification: {
+          title,
+          body,
+          imageUrl: `${process.env.BACKEND_URL}/logo.png`,
+        },
+
+        tokens: tokens,
+        webpush: { fcmOptions: { link: process.env.ADMIN_URL } },
+      });
+
+      console.log({ response });
+      if (response.failureCount > 0) {
+        const failedTokens = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
             failedTokens.push(registrationTokens[idx]);
           }
         });
@@ -247,7 +299,67 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return distance;
 }
 
+function getAvailableSlots(slots = []) {
+  const currentTime = moment();
+  console.log("test", currentTime);
+  const futureTimeSlots = slots?.filter((slot) => {
+    const startTime = slot.time.split(" - ")[0];
+    const [time, meridian] = startTime.split(" ");
+    const val = time.split(":")[0];
+
+    const cmeridian = startTime.split(" ")[0];
+
+    // Define 10:00 AM as another moment object
+    var targetTime = moment().set({
+      hour:
+        meridian === "AM"
+          ? Number(val)
+          : Number(val) === 12
+          ? Number(val)
+          : 12 + Number(val),
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    });
+    // console.log({
+    //   startTime,
+    //   currentTime,
+    //   time,
+    //   meridian,
+    //   val,
+
+    //   cmeridian,
+    //   targetTime,
+    // });
+    // Compare the two moments
+    if (currentTime.isBefore(targetTime)) {
+      console.log({
+        current: moment(currentTime).format("HH:mm a"),
+        target: moment(targetTime).format("HH:mm a"),
+        slot,
+        check: currentTime.isBefore(targetTime),
+        hour:
+          meridian === "AM"
+            ? Number(val)
+            : Number(val) === 12
+            ? Number(val)
+            : 12 + Number(val),
+      });
+      return slot;
+      console.log("The current time is before 10:00 AM.");
+    } else {
+      // console.log(
+      //   "The current time is after ",
+      //   moment(currentTime).format("HH:mm a")
+      // );
+    }
+  });
+
+  return futureTimeSlots;
+}
+
 const helpers = {
+  getAvailableSlots,
   calculateDistance,
   deleteFile,
   uploadFile,
@@ -259,6 +371,7 @@ const helpers = {
   sendNotifications,
   generateTimeSlots,
   generateAlphanumericFromNamePhoneTimestamp,
+  sendAdminNotifications,
 };
 
 module.exports = helpers;
