@@ -218,22 +218,17 @@ async function calculatedExtraCharges({ amount, type }) {
   let transactionMode = charges?.transaction?.mode;
 
   let gst = gstMode === "percentage" ? amount * (cgst / 100) : cgst;
-  let delivery =
-    type?.toLowerCase() !== "take away"
-      ? deliveryMode === "percentage"
-        ? amount * (cdelivery / 100)
-        : cdelivery
-      : 0;
+  let delivery = type?.toLowerCase() !== "take away" ? 40 : 0;
   let packingPrice =
     packingMode === "percentage" ? amount * (cpacking / 100) : cpacking;
   let transactionPrice =
     transactionMode === "percentage"
       ? amount * (ctransaction / 100)
       : ctransaction;
-  let total = gst + delivery + packingPrice + transactionPrice + amount;
+  let total = gst + (delivery || 0) + packingPrice + transactionPrice + amount;
   return {
     gst,
-    delivery,
+    delivery: delivery || 0,
     packingPrice,
     transactionPrice,
     total,
@@ -327,7 +322,7 @@ const createCallOrder = async (req, res) => {
 
         billAmount: amount,
         grandTotal: prices?.total,
-        gst: prices?.gst,
+        gst: prices?.gst?.toFixed(0),
         deliveryCharge: prices?.delivery,
         transactionCharge: prices?.transactionPrice,
         packingCharge: prices?.packingPrice,
