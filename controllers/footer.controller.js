@@ -29,6 +29,9 @@ const createFooter = async (req, res) => {
           location: get(req, "body.location"),
           latitude: get(req, "body.latitude"),
           longitude: get(req, "body.longitude"),
+          veg: get(req, "body.veg"),
+          nonveg: get(req, "body.nonveg"),
+          isDining: get(req, "body.isDining", true),
         });
 
         return res.status(200).send({ message: "Footer created successfully" });
@@ -41,6 +44,9 @@ const createFooter = async (req, res) => {
           location: get(req, "body.location"),
           latitude: get(req, "body.latitude"),
           longitude: get(req, "body.longitude"),
+          veg: get(req, "body.veg"),
+          nonveg: get(req, "body.nonveg"),
+          isDining: get(req, "body.isDining", true),
         });
         return res.status(200).send({ message: "Footer created successfully" });
       }
@@ -64,6 +70,9 @@ const createFooter = async (req, res) => {
           colors: get(isFooter, "[0].colors"),
           latitude: get(req, "body.latitude"),
           longitude: get(req, "body.longitude"),
+          veg: get(req, "body.veg"),
+          nonveg: get(req, "body.nonveg"),
+          isDining: get(req, "body.isDining", true),
         });
 
         return res.status(200).send({ message: "Footer Updated successfully" });
@@ -95,6 +104,9 @@ const createFooter = async (req, res) => {
           latitude: get(req, "body.latitude"),
           longitude: get(req, "body.longitude"),
           content: get(req, "body.content"),
+          veg: get(req, "body.veg"),
+          nonveg: get(req, "body.nonveg"),
+          isDining: get(req, "body.isDining", true),
         });
         return res.status(200).send({ message: "Footer Updated successfully" });
       }
