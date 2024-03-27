@@ -123,6 +123,11 @@ const OrderSchema = mongoose.Schema(
     itemPrice: {
       type: Number,
     },
+    distance: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     BromagUserID: {
       type: String,
       // required: true,

@@ -25,6 +25,9 @@ const footerSchema = mongoose.Schema(
     longitude: {
       type: String,
     },
+    veg: { type: Boolean, required: false, default: false },
+    nonveg: { type: Boolean, required: false, default: false },
+    isDining: { type: Boolean, required: false, default: true },
   },
 
   { timestamps: true }
