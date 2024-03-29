@@ -138,21 +138,25 @@ async function sendPushNotification(fcmToken, title, body, action, data) {
   }
 }
 
-async function sendNotifications({ user_id, title, body }) {
-  console.log({ user_id, title, body });
+async function sendNotifications({ user_id, title, body = "", url = "" }) {
+  console.log({ user_id, title, body, url });
   try {
     if (!user_id) {
       return;
     }
     const result = await userModal.findOne({ _id: user_id });
-    console.log({ user: result });
+    console.log("Notfication result---", {
+      user: result,
+      url,
+      token: result?.tokens?.length,
+    });
     if (result?.tokens?.length) {
       const response = await getMessaging().sendEachForMulticast({
         data: {
           title,
           body,
           logo: `${process.env.BACKEND_URL}/logo.png`,
-          url: process.env.FRONTEND_URL,
+          url: process.env.FRONTEND_URL + url,
         },
         notification: {
           title,
@@ -164,7 +168,7 @@ async function sendNotifications({ user_id, title, body }) {
         webpush: { fcmOptions: { link: process.env.FRONTEND_URL } },
       });
 
-      console.log({ response });
+      // console.log({ response });
       if (response.failureCount > 0) {
         const failedTokens = [];
         response.responses.forEach((resp, idx) => {
@@ -174,11 +178,15 @@ async function sendNotifications({ user_id, title, body }) {
         });
         console.log("List of tokens that caused failures: " + failedTokens);
       }
+      if (response?.successCount) {
+        console.log("--------Notification sent-------");
+      }
     } else {
+      console.log("Notfication not sent");
       return;
     }
   } catch (error) {
-    console.log(error);
+    console.log("Notification error", error);
   }
 }
 

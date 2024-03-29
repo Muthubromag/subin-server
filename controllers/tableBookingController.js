@@ -4,6 +4,7 @@ const _ = require("lodash");
 const {
   generateAlphanumericFromNamePhoneTimestamp,
   sendAdminNotifications,
+  sendNotifications,
 } = require("../utils/helpers");
 
 const createTableBooking = async (req, res) => {
@@ -29,15 +30,34 @@ const getTableBooking = async (req, res) => {
 };
 
 const updateTableBooking = async (req, res) => {
+  const { booking } = req.body;
+  let user_id = null;
+  let table_id = null;
   try {
     const { id } = req.params;
 
     const result = await tableBooking.findByIdAndUpdate(id, { ...req.body });
+    user_id = result?.userId;
+    table_id = result?.diningID;
+    const io = req.app.get("socketio");
+    io.emit("demo", {
+      id: Math.random(1000, 1000000),
+      order: "takeaway",
+      status: req.body.booking,
+    });
     return res.status(200).send({ data: result });
   } catch (err) {
+    console.log(err);
     return res
       .status(500)
       .send("Something went wrong while updating tableBooking");
+  } finally {
+    sendNotifications({
+      title: `Dining Table ${table_id}`,
+      body: booking,
+      user_id,
+      url: "/profile-table-booking",
+    });
   }
 };
 

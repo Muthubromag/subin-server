@@ -74,7 +74,12 @@ const updateOnlineOrder = async (req, res) => {
       .status(500)
       .send("Something went wrong while updating online order");
   } finally {
-    sendNotifications({ title: "Online order", body: status, user_id });
+    sendNotifications({
+      title: "Online order",
+      body: status || "Order Status Updated",
+      user_id,
+      url: "/profile-online-order",
+    });
   }
 };
 
