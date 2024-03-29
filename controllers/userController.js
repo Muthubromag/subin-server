@@ -286,10 +286,13 @@ const updateMyPic = async (req, res) => {
 
 const updateToken = async (req, res) => {
   try {
-    await User.findByIdAndUpdate(
-      { _id: _.get(req, "body.userDetails._id", "") },
-      { $push: { tokens: req.body.token } }
-    );
+    const userId = _.get(req, "body.userDetails._id", "");
+    const token = req.body.token;
+    const user = await User.findById(userId);
+    if (user?.tokens?.includes(token)) {
+      return res.status(200).send({ message: "Token already exists" });
+    }
+    await User.findByIdAndUpdate({ _id: userId }, { $push: { tokens: token } });
     return res.status(200).send({ message: "success" });
   } catch (err) {
     return res.status(500).send({ message: "Something went wrong" });

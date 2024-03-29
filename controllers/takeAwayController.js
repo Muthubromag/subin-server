@@ -57,7 +57,12 @@ const updateTakeAwayOrder = async (req, res) => {
       .status(500)
       .send("Something went wrong while updating takeAway order");
   } finally {
-    sendNotifications({ title: "Take Away order", body: status, user_id });
+    sendNotifications({
+      title: "Take Away order",
+      body: status || "Order Status Updated",
+      user_id,
+      url: "/profile-take-away-order",
+    });
   }
 };
 

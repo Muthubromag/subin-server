@@ -52,7 +52,12 @@ const updateDinningOrder = async (req, res) => {
       .status(500)
       .send("Something went wrong while updating dinning order");
   } finally {
-    sendNotifications({ title: "Dining order", body: status, user_id });
+    sendNotifications({
+      title: "Dining order",
+      body: status,
+      user_id,
+      url: "/profile-table-booking",
+    });
   }
 };
 

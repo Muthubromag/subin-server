@@ -266,9 +266,10 @@ async function calculatedExtraCharges({ amount, type, distance }) {
 }
 
 const createCallOrder = async (req, res) => {
+  let user_id = null;
+  const { formData } = req.body;
   try {
     const ORDERTYPE = "call";
-    const { formData } = req.body;
 
     const orderedFoodArray = formData.orderedFood;
     console.log({
@@ -332,6 +333,7 @@ const createCallOrder = async (req, res) => {
     if (!user) {
       user = await CreateUser(formData);
     }
+    user_id = user?._id;
     if (!amount) {
       return res
         .status(500)
@@ -368,6 +370,13 @@ const createCallOrder = async (req, res) => {
     return res
       .status(500)
       .send("Something went wrong while creating call order");
+  } finally {
+    sendNotifications({
+      title: "Call order",
+      body: "Your order is created",
+      user_id,
+      url: "/profile-call-for-order",
+    });
   }
 };
 
@@ -651,7 +660,16 @@ const updateCallOrderStatus = async (req, res) => {
       .status(500)
       .send("Something went wrong while creating call order");
   } finally {
-    sendNotifications({ title: "Call order", body: status, user_id });
+    sendNotifications({
+      title: "Call order",
+      body: status
+        ? status
+        : req?.body?.timePicked
+        ? "Order preparation started"
+        : "Order status updated",
+      user_id,
+      url: "/profile-call-for-order",
+    });
   }
 };
 
