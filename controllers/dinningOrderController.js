@@ -32,7 +32,7 @@ const getDinningOrder = async (req, res) => {
 
 const updateDinningOrder = async (req, res) => {
   const { id } = req.params;
-
+  let success = false;
   const { status } = req.body;
   let user_id = null;
   try {
@@ -43,21 +43,25 @@ const updateDinningOrder = async (req, res) => {
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "dining",
-      status: req.body.status,
+      status: req.body.status || "Order status updated",
     });
+    success = true;
     return res.status(200).send({ data: result });
   } catch (e) {
     console.log(e);
+    success = false;
     return res
       .status(500)
       .send("Something went wrong while updating dinning order");
   } finally {
-    sendNotifications({
-      title: "Dining order",
-      body: status,
-      user_id,
-      url: "/profile-table-booking",
-    });
+    if (success) {
+      sendNotifications({
+        title: "Dining order",
+        body: status || "Order status updated",
+        user_id,
+        url: "/profile-table-booking",
+      });
+    }
   }
 };
 

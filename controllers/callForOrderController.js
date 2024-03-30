@@ -632,6 +632,7 @@ const updateCallOrder = async (req, res) => {
 const updateCallOrderStatus = async (req, res) => {
   const { status } = req.body;
   let user_id = null;
+  let success = false;
   try {
     const { id } = req.params;
 
@@ -651,25 +652,33 @@ const updateCallOrderStatus = async (req, res) => {
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "Call Order",
-      status,
-    });
-    return res.status(200).send({ data: result });
-  } catch (err) {
-    console.log(err);
-    return res
-      .status(500)
-      .send("Something went wrong while creating call order");
-  } finally {
-    sendNotifications({
-      title: "Call order",
-      body: status
+      status: status
         ? status
         : req?.body?.timePicked
         ? "Order preparation started"
         : "Order status updated",
-      user_id,
-      url: "/profile-call-for-order",
     });
+    success = true;
+    return res.status(200).send({ data: result });
+  } catch (err) {
+    console.log(err);
+    success = false;
+    return res
+      .status(500)
+      .send("Something went wrong while creating call order");
+  } finally {
+    if (success) {
+      sendNotifications({
+        title: "Call order",
+        body: status
+          ? status
+          : req?.body?.timePicked
+          ? "Order preparation started"
+          : "Order status updated",
+        user_id,
+        url: "/profile-call-for-order",
+      });
+    }
   }
 };
 
