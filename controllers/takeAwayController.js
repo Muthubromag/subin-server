@@ -49,7 +49,7 @@ const updateTakeAwayOrder = async (req, res) => {
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "takeaway",
-      status: req.body.status,
+      status: status || "Order Status Updated",
     });
     return res.status(200).send({ data: result });
   } catch (e) {
