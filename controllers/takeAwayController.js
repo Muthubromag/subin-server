@@ -49,7 +49,7 @@ const updateTakeAwayOrder = async (req, res) => {
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "takeaway",
-      status: req.body.status,
+      status: status || "Order Status Updated",
     });
     return res.status(200).send({ data: result });
   } catch (e) {
@@ -57,7 +57,12 @@ const updateTakeAwayOrder = async (req, res) => {
       .status(500)
       .send("Something went wrong while updating takeAway order");
   } finally {
-    sendNotifications({ title: "Take Away order", body: status, user_id });
+    sendNotifications({
+      title: "Take Away order",
+      body: status || "Order Status Updated",
+      user_id,
+      url: "/profile-take-away-order",
+    });
   }
 };
 

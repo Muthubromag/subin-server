@@ -266,9 +266,10 @@ async function calculatedExtraCharges({ amount, type, distance }) {
 }
 
 const createCallOrder = async (req, res) => {
+  let user_id = null;
+  const { formData } = req.body;
   try {
     const ORDERTYPE = "call";
-    const { formData } = req.body;
 
     const orderedFoodArray = formData.orderedFood;
     console.log({
@@ -332,6 +333,7 @@ const createCallOrder = async (req, res) => {
     if (!user) {
       user = await CreateUser(formData);
     }
+    user_id = user?._id;
     if (!amount) {
       return res
         .status(500)
@@ -368,6 +370,13 @@ const createCallOrder = async (req, res) => {
     return res
       .status(500)
       .send("Something went wrong while creating call order");
+  } finally {
+    sendNotifications({
+      title: "Call order",
+      body: "Your order is created",
+      user_id,
+      url: "/profile-call-for-order",
+    });
   }
 };
 
@@ -623,6 +632,7 @@ const updateCallOrder = async (req, res) => {
 const updateCallOrderStatus = async (req, res) => {
   const { status } = req.body;
   let user_id = null;
+  let success = false;
   try {
     const { id } = req.params;
 
@@ -642,16 +652,33 @@ const updateCallOrderStatus = async (req, res) => {
     io.emit("demo", {
       id: Math.random(1000, 1000000),
       order: "Call Order",
-      status,
+      status: status
+        ? status
+        : req?.body?.timePicked
+        ? "Order preparation started"
+        : "Order status updated",
     });
+    success = true;
     return res.status(200).send({ data: result });
   } catch (err) {
     console.log(err);
+    success = false;
     return res
       .status(500)
       .send("Something went wrong while creating call order");
   } finally {
-    sendNotifications({ title: "Call order", body: status, user_id });
+    if (success) {
+      sendNotifications({
+        title: "Call order",
+        body: status
+          ? status
+          : req?.body?.timePicked
+          ? "Order preparation started"
+          : "Order status updated",
+        user_id,
+        url: "/profile-call-for-order",
+      });
+    }
   }
 };
 
