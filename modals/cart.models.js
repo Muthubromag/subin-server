@@ -12,6 +12,13 @@ const productTypeSchema = mongoose.Schema({
   TypeOfferPercentage: {
     type: Number,
   },
+  TypeTakeAwayOfferPrice: {
+    type: Number,
+  },
+  TypeTakeAwayOfferPercentage: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const cartSchema = new mongoose.Schema(
@@ -24,7 +31,7 @@ const cartSchema = new mongoose.Schema(
     typeRef: {
       type: productTypeSchema, // Corrected line
     },
- 
+
     orderRef: String,
     bookingRef: String,
     quantity: {

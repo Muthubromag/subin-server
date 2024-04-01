@@ -15,6 +15,7 @@ const createProduct = async (req, res) => {
     categoryName,
     status,
     offer,
+    takeawayOffer,
   } = req.body;
   const isMultiTyped = req.body.isMultiTyped === "true";
   console.log(req.body, isMultiTyped);
@@ -70,19 +71,34 @@ const createProduct = async (req, res) => {
     parsedTypes.forEach((typeObj) => {
       const typePrice = Number(typeObj?.TypePrice);
       let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
+      let typetakeawayOfferPercentage = Number(
+        typeObj?.TypeTakeAwayOfferPercentage
+      );
 
       // Handle cases where TypeOfferPercentage is 0, null, or undefined
       if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
         typeOfferPercentage = 0;
       }
+      if (
+        typetakeawayOfferPercentage === null ||
+        typetakeawayOfferPercentage === undefined
+      ) {
+        typetakeawayOfferPercentage = 0;
+      }
       // Calculate TypeOfferPrice
       const calculatedTypeOfferPrice =
         typePrice - (typePrice * typeOfferPercentage) / 100;
-
+      const calculatedTakeawayTypeOfferPrice =
+        typePrice - (typePrice * typetakeawayOfferPercentage) / 100;
       // Assign the calculated values back to the array
       let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
       typeObj.TypeOfferPercentage = typeOfferPercentage;
       typeObj.TypeOfferPrice = flooredReducedPrice;
+      let flooredTakeawayReducedPrice = Math.floor(
+        calculatedTakeawayTypeOfferPrice
+      );
+      typeObj.TypeTakeAwayOfferPercentage = typetakeawayOfferPercentage;
+      typeObj.TypeTakeAwayOfferPrice = flooredTakeawayReducedPrice;
     });
 
     const result = await product.create({
@@ -138,7 +154,7 @@ const createProduct = async (req, res) => {
     }
 
     const offerPrice = calculateOfferPrice(price, offer) || 0;
-
+    const offerTakeAwayPrice = calculateOfferPrice(price, takeawayOffer) || 0;
     const result = await product.create({
       name: req.body.name,
       status: req.body.status ? req.body.status : false,
@@ -148,6 +164,8 @@ const createProduct = async (req, res) => {
       discountPrice: offerPrice,
       offer: req.body.offer || 0,
       price: req.body.price || 0,
+      takeawayDiscountPrice: offerTakeAwayPrice,
+      takeawayOffer,
       subCategoryName: req.body.subCategoryName,
       image: image,
       isVeg: isVeg,
@@ -229,7 +247,7 @@ const getProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { active = false, types } = req.body;
+  const { active = false, types, takeawayOffer } = req.body;
   console.log(req?.body?.types !== "undefined");
 
   try {
@@ -249,83 +267,82 @@ const updateProduct = async (req, res) => {
         if (imageUrl) {
           await helpers.deleteS3File(imageUrl);
         }
-        const image = helpers.getS3FileUrl(path);
+        imageUrl = helpers.getS3FileUrl(path);
         helpers.deleteFile(menu);
-        const result = await product.findByIdAndUpdate(id, {
-          name: req.body.name,
-          status: req.body.status,
-          discountPrice: req.body.discountPrice,
-          isVeg: req.body.isVeg,
-          offer: req.body.offer,
-          price: req.body.price,
-          categoryId: req.body.categoryId,
-          subCategoryId: req.body.subCategoryId,
-          categoryName: req.body.categoryName,
-          subCategoryName: req.body.subCategoryName,
-          image: image,
-        });
-        return res
-          .status(200)
-          .send({ message: "Cusines updated successfully" });
       }
-    } else {
-      const parsedTypes =
-        req?.body?.types && req?.body?.types !== "undefined"
-          ? JSON.parse(req.body?.types)
-          : [];
-      parsedTypes?.forEach((typeObj) => {
-        const typePrice = Number(typeObj?.TypePrice);
-        let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
-
-        // Handle cases where TypeOfferPercentage is 0, null, or undefined
-        if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
-          typeOfferPercentage = 0;
-        }
-        // Calculate TypeOfferPrice
-        const calculatedTypeOfferPrice =
-          typePrice - (typePrice * typeOfferPercentage) / 100;
-
-        // Assign the calculated values back to the array
-        let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
-        typeObj.TypeOfferPercentage = typeOfferPercentage;
-        typeObj.TypeOfferPrice = flooredReducedPrice;
-      });
-
-      function calculateOfferPrice(basePrice, offerPercentage) {
-        // Ensure basePrice is a number
-        basePrice = parseFloat(basePrice);
-
-        // Ensure offerPercentage is a number, default to 0 if null or undefined
-        offerPercentage = parseFloat(offerPercentage) || 0;
-
-        // Calculate offerPrice
-        const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
-        let flooredOfferPrice = Math.floor(offerPrice);
-
-        return flooredOfferPrice;
-      }
-
-      const offerPrice =
-        calculateOfferPrice(req.body.price, req.body.offer) || 0;
-
-      await product.findByIdAndUpdate(id, {
-        name: req.body.name,
-        status: req.body.status,
-        offer: req.body.offer || 0,
-        price: req.body.price || 0,
-        isVeg: req.body.isVeg,
-        discountPrice: isNaN(offerPrice) ? 0 : offerPrice,
-        categoryId: req.body.categoryId,
-        subCategoryId: req.body.subCategoryId,
-        categoryName: req.body.categoryName,
-        types: parsedTypes,
-        subCategoryName: req.body.subCategoryName,
-        image: get(req, "body.image", ""),
-      });
-      return res
-        .status(200)
-        .send({ Message: "created successfully", test: "calculated" });
     }
+    const parsedTypes =
+      req?.body?.types && req?.body?.types !== "undefined"
+        ? JSON.parse(req.body?.types)
+        : [];
+    parsedTypes?.forEach((typeObj) => {
+      const typePrice = Number(typeObj?.TypePrice);
+      let typeOfferPercentage = Number(typeObj?.TypeOfferPercentage);
+      let typetakeawayOfferPercentage = Number(
+        typeObj?.TypeTakeAwayOfferPercentage
+      );
+      // Handle cases where TypeOfferPercentage is 0, null, or undefined
+      if (typeOfferPercentage === null || typeOfferPercentage === undefined) {
+        typeOfferPercentage = 0;
+      }
+      if (
+        typetakeawayOfferPercentage === null ||
+        typetakeawayOfferPercentage === undefined
+      ) {
+        typetakeawayOfferPercentage = 0;
+      }
+      // Calculate TypeOfferPrice
+      const calculatedTypeOfferPrice =
+        typePrice - (typePrice * typeOfferPercentage) / 100;
+      const calculatedTakeawayTypeOfferPrice =
+        typePrice - (typePrice * typetakeawayOfferPercentage) / 100;
+      // Assign the calculated values back to the array
+      let flooredReducedPrice = Math.floor(calculatedTypeOfferPrice);
+      typeObj.TypeOfferPercentage = typeOfferPercentage;
+      typeObj.TypeOfferPrice = flooredReducedPrice;
+      let flooredTakeawayReducedPrice = Math.floor(
+        calculatedTakeawayTypeOfferPrice
+      );
+      typeObj.TypeTakeAwayOfferPercentage = typetakeawayOfferPercentage;
+      typeObj.TypeTakeAwayOfferPrice = flooredTakeawayReducedPrice;
+    });
+
+    function calculateOfferPrice(basePrice, offerPercentage) {
+      // Ensure basePrice is a number
+      basePrice = parseFloat(basePrice);
+
+      // Ensure offerPercentage is a number, default to 0 if null or undefined
+      offerPercentage = parseFloat(offerPercentage) || 0;
+
+      // Calculate offerPrice
+      const offerPrice = basePrice - (basePrice * offerPercentage) / 100;
+      let flooredOfferPrice = Math.floor(offerPrice);
+
+      return flooredOfferPrice;
+    }
+
+    const offerPrice = calculateOfferPrice(req.body.price, req.body.offer) || 0;
+    const offerTakeAwayPrice =
+      calculateOfferPrice(req.body.price, req.body.takeawayOffer) || 0;
+    await product.findByIdAndUpdate(id, {
+      name: req.body.name,
+      status: req.body.status,
+      offer: req.body.offer || 0,
+      price: req.body.price || 0,
+      isVeg: req.body.isVeg,
+      discountPrice: isNaN(offerPrice) ? 0 : offerPrice,
+      categoryId: req.body.categoryId,
+      subCategoryId: req.body.subCategoryId,
+      takeawayDiscountPrice: offerTakeAwayPrice,
+      takeawayOffer,
+      categoryName: req.body.categoryName,
+      types: parsedTypes,
+      subCategoryName: req.body.subCategoryName,
+      image: imageUrl,
+    });
+    return res
+      .status(200)
+      .send({ Message: "created successfully", test: "calculated" });
   } catch (e) {
     console.log(e);
     return res
