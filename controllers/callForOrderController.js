@@ -517,6 +517,21 @@ const updateCallOrder = async (req, res) => {
     const { id } = req.params;
     const ORDERTYPE = "call";
     const formData = req.body;
+    if (
+      Object.keys(req.body)?.length == 1 &&
+      Object.keys(req.body)?.includes("inventory")
+    ) {
+      const result = await Order.findByIdAndUpdate(
+        { _id: id, orderType: ORDERTYPE },
+        {
+          ...formData,
+
+          // status: "Order received",
+        },
+        { new: true }
+      );
+      return res.status(200).send({ data: result });
+    }
 
     const orderedFoodArray = formData?.orderedFood;
     console.log(orderedFoodArray);

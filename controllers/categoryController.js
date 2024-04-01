@@ -221,6 +221,135 @@ const getFilteredProducts = async (req, res) => {
   }
 };
 
+const getFilteredProductscc = async (req, res) => {
+  try {
+    const { cat, subCat, isNonVegOnly, isVegOnly, orderMode } = JSON.parse(
+      req.params.id
+    );
+    console.log("isNonVegOnly", isNonVegOnly, "isVegOnly", isVegOnly);
+    console.log("orderMode----------", { orderMode });
+    const mode = "percentage";
+    const modeValue = orderMode === "online" ? 10 : 20;
+    let where = {};
+
+    if (cat && subCat) {
+      where.categoryId = cat;
+      where.subCategoryId = subCat;
+    } else if (cat) {
+      where.categoryId = cat;
+    } else {
+      return res.status(400).send("Both cat and subCat are required.");
+    }
+
+    // Apply filters based on isNonVegOnly and isVegOnly
+    if (isNonVegOnly && !isVegOnly) {
+      where.isVeg = false;
+    } else if (isVegOnly && !isNonVegOnly) {
+      where.isVeg = true;
+    }
+
+    where.status = { $in: [true, false] };
+
+    // console.log(where);
+
+    try {
+      const productData = await Product.aggregate([
+        {
+          $match: where, // Add $match stage to filter documents based on where condition
+        },
+        {
+          $addFields: {
+            mainPrice: {
+              $cond: [
+                { $eq: [mode, "fixed"] },
+                { $add: ["$discountPrice", modeValue] }, // Add modeValue to discountPrice if mode is fixed
+                {
+                  $add: [
+                    "$discountPrice",
+                    {
+                      $multiply: [
+                        "$discountPrice",
+                        { $divide: [modeValue, 100] }, // Calculate percentage
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            types: {
+              $cond: {
+                if: { $eq: [{ $size: "$types" }, 0] },
+                then: [],
+                else: {
+                  $map: {
+                    input: "$types",
+                    as: "type",
+                    in: {
+                      $mergeObjects: [
+                        "$$type",
+                        {
+                          mainPrice: {
+                            $cond: [
+                              { $eq: [mode, "fixed"] },
+                              { $add: ["$$type.TypeOfferPrice", modeValue] },
+                              {
+                                $add: [
+                                  "$$type.TypeOfferPrice",
+                                  {
+                                    $multiply: [
+                                      "$$type.TypeOfferPrice",
+                                      { $divide: [modeValue, 100] },
+                                    ],
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$_id",
+            name: { $first: "$name" },
+            image: { $first: "$image" },
+            isVeg: { $first: "$isVeg" },
+            status: { $first: "$status" },
+            categoryId: { $first: "$categoryId" },
+            subCategoryId: { $first: "$subCategoryId" },
+            categoryName: { $first: "$categoryName" },
+            subCategoryName: { $first: "$subCategoryName" },
+            createdAt: { $first: "$createdAt" },
+            updatedAt: { $first: "$updatedAt" },
+            offer: { $first: "$offer" },
+            price: { $first: "$price" },
+            discountPrice: { $first: "$discountPrice" },
+            mainPrice: { $first: "$mainPrice" },
+            types: { $first: "$types" },
+          },
+        },
+        {
+          $sort: { name: 1 }, // Sort by name in ascending order
+        },
+      ]);
+
+      // console.log(productData);
+      return res.status(200).send({ data: productData });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({ error: "Internal Server Error" });
+    }
+  } catch (e) {
+    return res.status(500).send("Something went wrong while fetching products");
+  }
+};
+
 module.exports = {
   createCategory,
   getCategory,
